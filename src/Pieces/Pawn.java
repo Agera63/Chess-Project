@@ -33,7 +33,8 @@ public class Pawn extends Piece{
         if(!this.checkPosToMove(this, Pos.stringToPos(placeToMove), true) && movementType.equals("diagonal")){
             //if we are in this condition, it means that there is a piece of the opposit color that will be removed.
             for(Piece p : GameManager.getGameObjects()){
-                if(Pos.stringToPos(placeToMove).equals(p.position)){
+                String PStringPosition = p.position.posToString();
+                if(placeToMove.equals(PStringPosition) && p instanceof Pawn){
                     p.deactivate();
                     temporaryBoard[this.position.num][this.position.letter] = '\u0000';
                     temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;

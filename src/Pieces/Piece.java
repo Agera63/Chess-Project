@@ -81,20 +81,19 @@ public abstract class Piece {
      * @return true if no piece of same color in that slot / false if there is a piece in that position
      */
     public boolean checkPosToMove(Piece p, Pos posToMove, boolean condition){
-        boolean valid = true;
         for(Piece tempPiece : pieceTable){
             if(condition) {
-                if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
-                    valid = false;
+                if(posToMove.num - 1 == tempPiece.position.num && posToMove.letter - 1 == tempPiece.position.letter){
+                    return false;
                 }
             } else {
-                if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter
+                if(posToMove.num - 1 == tempPiece.position.num && posToMove.letter - 1 == tempPiece.position.letter
                         && p.color == tempPiece.color){
-                    valid = false;
+                    return false;
                 }
             }
         }
-        return valid;
+        return true;
     }
 
     /**

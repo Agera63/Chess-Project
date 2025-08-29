@@ -34,7 +34,8 @@ public class Pos {
      * @return position in string
      */
     public String posToString(){
-        return String.valueOf(numToLetter()) + String.valueOf(num + 1);
+        String temp = String.valueOf(numToLetter()) + String.valueOf(num + 1);
+        return temp;
     }
 
     /**
