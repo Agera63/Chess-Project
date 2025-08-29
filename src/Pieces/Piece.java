@@ -77,19 +77,32 @@ public abstract class Piece {
      * @param p Piece that will move. Only used for its color property
      * @param posToMove The position that the piece (p) is trying to move to.
      * @param condition true checks if any piece is in that position
-     *                  false checks if piece of same color is in the position
+     *                  false checks if piece of different color is in the position
      * @return true if no piece of same color in that slot / false if there is a piece in that position
      */
     public boolean checkPosToMove(Piece p, Pos posToMove, boolean condition){
         for(Piece tempPiece : pieceTable){
-            if(condition) {
-                if(posToMove.num - 1 == tempPiece.position.num && posToMove.letter - 1 == tempPiece.position.letter){
-                    return false;
+            if(GameManager.getColor()){
+                if(condition) {
+                    if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
+                        return false;
+                    }
+                } else {
+                    if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter
+                            && p.color != tempPiece.color){
+                        return false;
+                    }
                 }
             } else {
-                if(posToMove.num - 1 == tempPiece.position.num && posToMove.letter - 1 == tempPiece.position.letter
-                        && p.color == tempPiece.color){
-                    return false;
+                if(condition) {
+                    if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
+                        return false;
+                    }
+                } else {
+                    if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter
+                            && p.color != tempPiece.color){
+                        return false;
+                    }
                 }
             }
         }
@@ -119,7 +132,7 @@ public abstract class Piece {
         Piece PieceToMove = findPieceOfPos(Pos.stringToPos(String.valueOf(MovementChar[0]) + String.valueOf(MovementChar[1]).toLowerCase()));
 
         //the piece can not be null or it will crash the game
-        if(PieceToMove == null) {
+        if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
             return false;
         }
 
@@ -163,9 +176,21 @@ public abstract class Piece {
             }
         } else {
             if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
-
+                if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                        Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                        && PieceToMove.position.num - finalPosition.num > 0){
+                    return true;
+                }
             } else if (movementType.equals("diagonal") && PieceToMove instanceof Pawn) {
-
+                boolean temp = !PieceToMove.checkPosToMove(PieceToMove, finalPosition, false);
+                if(temp &&
+                        Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                        && PieceToMove.position.num - finalPosition.num > 0
+                        && findPieceOfPos(finalPosition) != null){
+                    if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                        return true;
+                    }
+                }
             } else if (movementType.equals("vertical") && PieceToMove instanceof Rook) {
 
             } else if (movementType.equals("horizontal") && PieceToMove instanceof Rook) {
