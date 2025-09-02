@@ -127,14 +127,16 @@ public abstract class Piece {
                 if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
                     if(PieceToMove.color){
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
+                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 1))
                                 && finalPosition.num - PieceToMove.position.num  > 0){
                             return true;
                         }
                     } else {
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                                && PieceToMove.position.num - finalPosition.num > 0){
+                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
+                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 6))
+                                && PieceToMove.position.num - finalPosition.num > 0) {
                             return true;
                         }
                     }
