@@ -61,7 +61,7 @@ public class PieceManagers {
                 if(MovementChar.length == 6 && p instanceof Pawn){
                     if((p.position.num == 0 && !GameManager.getColor()) || (p.position.num == 7 && GameManager.getColor())){
                         ((Pawn) p).promotion(MovementChar[5]);
-                    //}
+                    }
                 }
             }
             if(!p.isActive){
