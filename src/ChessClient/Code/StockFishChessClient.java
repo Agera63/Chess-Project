@@ -1,6 +1,7 @@
 package ChessClient.Code;
 
 import GameManagement.GameManager;
+
 import java.io.*;
 
 public class StockFishChessClient {
@@ -94,11 +95,16 @@ public class StockFishChessClient {
 
     private static String boardToFen(char[][] board) {
         StringBuilder fen = new StringBuilder();
-        for (int row = 0; row < 8; row++) {
+
+        // FEN expects rank 8 first (row 0), then rank 7, 6, 5, 4, 3, 2, 1 (row 7)
+        // But your board seems to have rank 1 at row 0, so we need to reverse
+        for (int row = 7; row >= 0; row--) { // Reverse the row order
             int emptyCount = 0;
             for (int col = 0; col < 8; col++) {
                 char piece = board[row][col];
-                if (piece == '\0' || piece == ' ') {
+                // Check for various representations of empty squares
+                // Your board shows 'NULL' which suggests the char might be 'N' for null representation
+                if (piece == '\0' || piece == ' ' || piece == 'N') {
                     emptyCount++;
                 } else {
                     if (emptyCount > 0) {
@@ -109,11 +115,15 @@ public class StockFishChessClient {
                 }
             }
             if (emptyCount > 0) fen.append(emptyCount);
-            if (row < 7) fen.append('/');
+            if (row > 0) fen.append('/'); // Changed condition since we're going backwards
         }
 
         // FEN requires additional fields: side to move, castling, en passant, halfmove, fullmove
-        fen.append(" w - - 0 1");
+        // Debug: print current color and board state
+        boolean isWhite = !GameManager.getColor();
+        char activeColor = isWhite ? 'w' : 'b';
+        fen.append(" ").append(activeColor).append(" - - 0 1");
+
         return fen.toString();
     }
 

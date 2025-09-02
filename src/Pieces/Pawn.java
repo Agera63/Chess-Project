@@ -34,7 +34,7 @@ public class Pawn extends Piece{
             //if we are in this condition, it means that there is a piece of the opposit color that will be removed.
             for(Piece p : GameManager.getGameObjects()){
                 String PStringPosition = p.position.posToString();
-                if(placeToMove.equals(PStringPosition) && p instanceof Pawn){
+                if(placeToMove.equals(PStringPosition)){
                     p.deactivate();
                     temporaryBoard[this.position.num][this.position.letter] = '\u0000';
                     temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;

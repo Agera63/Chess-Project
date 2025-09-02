@@ -12,10 +12,10 @@ import static java.lang.Thread.sleep;
 public class Main {
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : focus on pawn promotion and knight movement
+    * CURRENTLY WORKING ON : pawn movement twice in begining.
     * make the movement on board with restrictions
+    * castling (once rook and king are coded)
     * winCondition
-    * castling
     * en passant
     * ask ChatGPT about special interactions with Stockfish
     * */

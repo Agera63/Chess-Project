@@ -124,21 +124,38 @@ public abstract class Piece {
         } else {
             String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
             //Logic for all the white pieces
-            if(PieceToMove.color){
                 if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
-                    if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                            && finalPosition.num - PieceToMove.position.num  > 0){
-                        return true;
+                    if(PieceToMove.color){
+                        if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                                && finalPosition.num - PieceToMove.position.num  > 0){
+                            return true;
+                        }
+                    } else {
+                        if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                                && PieceToMove.position.num - finalPosition.num > 0){
+                            return true;
+                        }
                     }
                 } else if (movementType.equals("diagonal") && PieceToMove instanceof Pawn) {
-                    boolean temp = !PieceToMove.checkPosToMove(PieceToMove, finalPosition, false);
-                    if(temp &&
-                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                            && finalPosition.num - PieceToMove.position.num  > 0
-                            && findPieceOfPos(finalPosition) != null){
-                        if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
-                            return true;
+                    if(PieceToMove.color){
+                        if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                                && finalPosition.num - PieceToMove.position.num  > 0
+                                && findPieceOfPos(finalPosition) != null){
+                            if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                                return true;
+                            }
+                        }
+                    } else {
+                        if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                                && PieceToMove.position.num - finalPosition.num > 0
+                                && findPieceOfPos(finalPosition) != null){
+                            if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                                return true;
+                            }
                         }
                     }
                 } else if (movementType.equals("vertical") && PieceToMove instanceof Rook) {
@@ -157,46 +174,17 @@ public abstract class Piece {
 
                 } else if (movementType.equals("diagonal") && PieceToMove instanceof King) {
 
-                } else if (movementType.equals("knight") && PieceToMove instanceof Knight){
-
-                }
-            } else {
-                if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
-                    if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                            && PieceToMove.position.num - finalPosition.num > 0){
+                } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
+                    //if something is there, check color then it can be valid
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && findPieceOfPos(finalPosition) != null
+                        && findPieceOfPos(finalPosition).color == !PieceToMove.color){
                         return true;
                     }
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof Pawn) {
-                    boolean temp = !PieceToMove.checkPosToMove(PieceToMove, finalPosition, false);
-                    if(temp &&
-                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                            && PieceToMove.position.num - finalPosition.num > 0
-                            && findPieceOfPos(finalPosition) != null){
-                        if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
-                            return true;
-                        }
+                    //if something is not there, its valid
+                    else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true)){
+                        return true;
                     }
-                } else if (movementType.equals("vertical") && PieceToMove instanceof Rook) {
-
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof Rook) {
-
-                } else if (movementType.equals("vertical") && PieceToMove instanceof Queen) {
-
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof Queen) {
-
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof Queen) {
-
-                } else if (movementType.equals("vertical") && PieceToMove instanceof King) {
-
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof King) {
-
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof King) {
-
-                } else if (movementType.equals("knight") && PieceToMove instanceof Knight){
-
                 }
-            }
             return false;
         }
     }
