@@ -15,7 +15,7 @@ public class Pawn extends Piece{
      * @param color Color of the piece. (true = black / false = white)
      */
     public Pawn(boolean color) {
-        super("Pieces.Pawn", 'P', new Pos(0,0), color);
+        super("Pawn", 'P', new Pos(0,0), color);
         //Makes sur the pieces have the correct position
         if(color){
             this.position = pawnPosition(color);
@@ -70,19 +70,20 @@ public class Pawn extends Piece{
                         "\n [Q]ueen, [B]ishop, K[n]ight, [R]ook");
                 char input = sc.next().toLowerCase().charAt(0);
                 switch (input){
-                    case 'q' : new Queen(color, position); temp = false; break;
-                    case 'b' : new Bishop(color, position); temp = false; break;
-                    case 'n' : new Knight(color, position); temp = false; break;
-                    case 'r' : new Rook(color, position); temp = false; break;
+                    case 'q' : new Queen(this.color, this.position); temp = false; break;
+                    case 'b' : new Bishop(this.color, this.position); temp = false; break;
+                    case 'n' : new Knight(this.color, this.position); temp = false; break;
+                    case 'r' : new Rook(this.color, this.position); temp = false; break;
                     default: break;
                 }
+
             } while(temp);
         } else {
             switch (pieceToPromote){
-                case 'q' : new Queen(color, position); break;
-                case 'b' : new Bishop(color, position); break;
-                case 'n' : new Knight(color, position); break;
-                case 'r' : new Rook(color, position); break;
+                case 'q' : new Queen(this.color, this.position); break;
+                case 'b' : new Bishop(this.color, this.position); break;
+                case 'n' : new Knight(this.color, this.position); break;
+                case 'r' : new Rook(this.color, this.position); break;
                 default: break;
             }
         }

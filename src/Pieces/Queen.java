@@ -1,5 +1,6 @@
 package Pieces;
 
+import GameManagement.PieceManagers;
 import Position.Pos;
 
 public class Queen extends Piece{
@@ -17,12 +18,19 @@ public class Queen extends Piece{
         }
     }
 
+    /**
+     * This contructor is only used to replace a promoting pawn
+     * @param color color of the piece
+     * @param p position of the old pawn
+     */
     public Queen (boolean color, Pos p){
         super("Queen", 'Q', p, color);
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color) {
             this.icon = 'q';
         }
+        PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        drawPieces();
     }
 
     /**

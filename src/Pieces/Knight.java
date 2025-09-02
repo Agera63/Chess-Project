@@ -1,5 +1,6 @@
 package Pieces;
 
+import GameManagement.PieceManagers;
 import Position.Pos;
 
 public class Knight extends Piece{
@@ -32,12 +33,19 @@ public class Knight extends Piece{
         }
     }
 
+    /**
+     * This contructor is only used to replace a pawn with another knight
+     * @param color color of the piece
+     * @param p position that this knight will take
+     */
     public Knight(boolean color, Pos p){
         super("Knight", 'N', p, color);
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color) {
             this.icon = 'n';
         }
+        PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        drawPieces();
     }
 
     /**
@@ -45,7 +53,12 @@ public class Knight extends Piece{
      */
     @Override
     public void mouvement(String placeToMove) {
+        String movementType = Pos.checkMovementDirection(this.position, Pos.stringToPos(placeToMove));
+        char[][] temporaryBoard = PieceManagers.getBoard();
 
+        if(!this.checkPosToMove(this, Pos.stringToPos(placeToMove), true) && movementType.equals("diagonal")){
+
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package Pieces;
 
+import GameManagement.PieceManagers;
 import Position.Pos;
 
 public class Rook extends Piece{
@@ -33,12 +34,19 @@ public class Rook extends Piece{
         }
     }
 
+    /**
+     * This is used only when a pawn will promote to a rook
+     * @param color color of the piece
+     * @param p position of the old pawn
+     */
     public Rook(boolean color, Pos p){
         super("Rook", 'R', p, color);
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color) {
             this.icon = 'r';
         }
+        PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        drawPieces();
     }
 
 

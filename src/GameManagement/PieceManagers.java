@@ -59,8 +59,9 @@ public class PieceManagers {
             if(getCompletePosDebug.equals(PieceToMove.toLowerCase())){
                 p.mouvement(PositionToMove.toLowerCase());
                 if(MovementChar.length == 6 && p instanceof Pawn){
-                    char temp = MovementChar[5];
-                    ((Pawn) p).promotion(temp);
+                    //if((p.position.num == 0 && !GameManager.getColor()) || (p.position.num == 7 && GameManager.getColor())){
+                        ((Pawn) p).promotion(MovementChar[5]);
+                    //}
                 }
             }
             if(!p.isActive){

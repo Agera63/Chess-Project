@@ -1,5 +1,6 @@
 package Pieces;
 
+import GameManagement.PieceManagers;
 import Position.Pos;
 
 public class Bishop extends Piece{
@@ -32,12 +33,19 @@ public class Bishop extends Piece{
         }
     }
 
+    /**
+     * This is only used when a pawn will promote to a bishop
+     * @param color color of the piece
+     * @param p position of the piece
+     */
     public Bishop(boolean color, Pos p){
         super("Bishop", 'B', p, color);
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color) {
             this.icon = 'b';
         }
+        PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        drawPieces();
     }
 
     /**

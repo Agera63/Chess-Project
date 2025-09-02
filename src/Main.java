@@ -12,7 +12,7 @@ import static java.lang.Thread.sleep;
 public class Main {
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : make sure it pawn can take out other pieces
+    * CURRENTLY WORKING ON : focus on pawn promotion and knight movement
     * make the movement on board with restrictions
     * winCondition
     * castling
@@ -21,7 +21,7 @@ public class Main {
     * */
 
     //Changes the amount of seconds between
-    final private static int timeBetweenMoves = 5;
+    final private static int timeBetweenMoves = 1;
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
@@ -85,7 +85,7 @@ public class Main {
             System.out.println("----------------------------------");
 
             //Lest the user see the board and think out his next move;
-            //pause(timeBetweenMoves);
+            pause(timeBetweenMoves);
 
             //Makes sure the turn changes and the next person can play
             turn = !turn;
