@@ -73,7 +73,7 @@ public class PieceManagers {
     }
 
     /**
-     * Draws the board.
+     * Draws the board in the console.
      */
     public static void drawBoard(){
         //Draws the board once the move has been updated.

@@ -62,7 +62,7 @@ public abstract class Piece {
     }
 
     /**
-     * Draws the pieces and sets the board.
+     * Draws the pieces and sets the board. This does not show the board in the console.
      */
     public static void drawPieces(){
         char[][] temp = PieceManagers.getBoard();
@@ -101,7 +101,7 @@ public abstract class Piece {
      * @param position the position that I am looking for
      * @return the Piece in the position OR null if nothing is found
      */
-    public static Piece findPieceOfPos(Pos position){
+    private static Piece findPieceOfPos(Pos position){
         for(Piece p : GameManager.getGameObjects()){
             if(position.num == p.position.num && position.letter == p.position.letter){
                 return p;
@@ -118,24 +118,24 @@ public abstract class Piece {
         Pos finalPosition = Pos.stringToPos(String.valueOf(MovementChar[3]) + String.valueOf(MovementChar[4]).toLowerCase());
         Piece PieceToMove = findPieceOfPos(Pos.stringToPos(String.valueOf(MovementChar[0]) + String.valueOf(MovementChar[1]).toLowerCase()));
 
-        //the piece can not be null or it will crash the game
-        if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
-            return false;
-        } else {
-            String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
-            //Logic for all the white pieces
+        try{
+            if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
+                return false;
+            } else {
+                String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
+                //Logic for all the white pieces
                 if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
                     if(PieceToMove.color){
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
                                 (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 1))
+                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 1))
                                 && finalPosition.num - PieceToMove.position.num  > 0){
                             return true;
                         }
                     } else {
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
                                 (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 6))
+                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 6))
                                 && PieceToMove.position.num - finalPosition.num > 0) {
                             return true;
                         }
@@ -179,15 +179,106 @@ public abstract class Piece {
                 } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
                     //if something is there, check color then it can be valid
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && findPieceOfPos(finalPosition) != null
-                        && findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                            && findPieceOfPos(finalPosition).color == !PieceToMove.color){
                         return true;
                     }
                     //if something is not there, its valid
                     else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true)){
                         return true;
                     }
+                } else if (movementType.equals("diagonal") && PieceToMove instanceof Bishop) {
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    }
                 }
+                return false;
+            }
+        } catch (Exception e){
             return false;
         }
+    }
+
+    /**
+     * Checks to see if there are any pieces that could block the move.
+     * @param finalPos The final position the pieces needs to go to
+     * @param movementType the type of movement that will be made
+     * @return true if something is blocking the move / false if nothing is blocking the move
+     */
+    private boolean anyPieceBlocking(Pos finalPos, String movementType){
+        int slotsToCheck = Pos.squaresMoved(movementType, this.position, finalPos);
+        for(int i = 1; i <= slotsToCheck; i++){
+            char charOnBoard;
+
+            //Checks if we are out of bounds of the 2d board.
+            try {
+                if(movementType.equals("vertical")) {
+                    //checks if we are going to add or substract for the position
+                    if(this.position.num < finalPos.num){
+
+                    } else {
+
+                    }
+                    return true;
+                } else if (movementType.equals("horizontal")) {
+
+                } else if (movementType.equals("diagonal")) {
+
+                    //Up right
+                    if(this.position.num < finalPos.num && this.position.letter < finalPos.letter){
+                        charOnBoard = PieceManagers.getBoard()[this.position.num + i][this.position.letter + i];
+                        if(charOnBoard != '\u0000'){
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString())){
+                                if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter + i)).color == this.color) {
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
+                        }
+                        //Down Right
+                    } else if(this.position.num > finalPos.num && this.position.letter < finalPos.letter){
+                        charOnBoard = PieceManagers.getBoard()[this.position.num - i][this.position.letter + i];
+                        if(charOnBoard != '\u0000'){
+                            if(finalPos.posToString().equals(new Pos(this.position.num - i, this.position.letter + i).posToString())){
+                                if (findPieceOfPos(new Pos(this.position.num - i, this.position.letter + i)).color == this.color) {
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
+                        }
+                        //Up Left
+                    } else if(this.position.num < finalPos.num && this.position.letter > finalPos.letter) {
+                        charOnBoard = PieceManagers.getBoard()[this.position.num + i][this.position.letter - i];
+                        if(charOnBoard != '\u0000'){
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter - i).posToString())){
+                                if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter - i)).color == this.color) {
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
+                        }
+                        //Down Left
+                    } else if (this.position.num > finalPos.num && this.position.letter > finalPos.letter) {
+                        charOnBoard = PieceManagers.getBoard()[this.position.num - i][this.position.letter - i];
+                        if(charOnBoard != '\u0000'){
+                            if(finalPos.posToString().equals(new Pos(this.position.num - i, this.position.letter - i).posToString())){
+                                if (findPieceOfPos(new Pos(this.position.num - i, this.position.letter - i)).color == this.color) {
+                                    return true;
+                                }
+                            } else {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                return true;
+            }
+        }
+        return false;
     }
 }
