@@ -11,6 +11,7 @@ import static java.lang.Thread.sleep;
 
 public class Main {
 
+
     /* TO DO LIST IN ORDER:
     * CURRENTLY WORKING ON : King
     * make the movement on board with restrictions
@@ -63,7 +64,6 @@ public class Main {
             PieceManagers.drawBoard();
         }
 
-        PieceManagers PM = new PieceManagers();
         boolean winCondition = false; //While false, the game will not end. Once true, game is over.
         boolean turn = true; //ture = white turn | false = black turn
 

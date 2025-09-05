@@ -115,8 +115,10 @@ public abstract class Piece {
      * @return true if valid / false if not valid
      */
     public static boolean validMove(char[] MovementChar){
-        Pos finalPosition = Pos.stringToPos(String.valueOf(MovementChar[3]) + String.valueOf(MovementChar[4]).toLowerCase());
-        Piece PieceToMove = findPieceOfPos(Pos.stringToPos(String.valueOf(MovementChar[0]) + String.valueOf(MovementChar[1]).toLowerCase()));
+        Pos finalPosition = Pos.stringToPos(String.valueOf(MovementChar[3]) +
+                String.valueOf(MovementChar[4]).toLowerCase());
+        Piece PieceToMove = findPieceOfPos(Pos.stringToPos(String.valueOf(MovementChar[0]) +
+                String.valueOf(MovementChar[1]).toLowerCase()));
 
         try{
             if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
@@ -127,15 +129,17 @@ public abstract class Piece {
                     if(PieceToMove.color){
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
                                 (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 1))
-                                && finalPosition.num - PieceToMove.position.num  > 0){
+                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
+                                                PieceToMove.position.num == 1)) &&
+                                finalPosition.num - PieceToMove.position.num  > 0){
                             return true;
                         }
                     } else {
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
                                 (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 && PieceToMove.position.num == 6))
-                                && PieceToMove.position.num - finalPosition.num > 0) {
+                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
+                                                PieceToMove.position.num == 6)) &&
+                                PieceToMove.position.num - finalPosition.num > 0) {
                             return true;
                         }
                     }
@@ -159,26 +163,40 @@ public abstract class Piece {
                             }
                         }
                     }
-                } else if ((movementType.equals("vertical") || movementType.equals("horizontal")) && PieceToMove instanceof Rook) {
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                } else if ((movementType.equals("vertical") || movementType.equals("horizontal")) &&
+                        PieceToMove instanceof Rook) {
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    }
-                } else if ((movementType.equals("vertical") || movementType.equals("horizontal") || movementType.equals("diagonal"))
-                        && PieceToMove instanceof Queen) {
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
                     }
-                } else if ((movementType.equals("vertical") || movementType.equals("horizontal") || movementType.equals("diagonal")
-                        && PieceToMove instanceof King)) {
-
+                } else if ((movementType.equals("vertical") || movementType.equals("horizontal")
+                        || movementType.equals("diagonal")) && PieceToMove instanceof Queen) {
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    }
+                } else if ((movementType.equals("vertical") || movementType.equals("horizontal") ||
+                        movementType.equals("diagonal") && PieceToMove instanceof King)) {
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
+                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
+                        return true;
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
+                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
+                        return true;
+                    }
                 } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
                     //if something is there, check color then it can be valid
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && findPieceOfPos(finalPosition) != null
-                            && findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            findPieceOfPos(finalPosition) != null &&
+                            findPieceOfPos(finalPosition).color == !PieceToMove.color){
                         return true;
                     }
                     //if something is not there, its valid
@@ -186,9 +204,11 @@ public abstract class Piece {
                         return true;
                     }
                 } else if (movementType.equals("diagonal") && PieceToMove instanceof Bishop) {
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
                     }
                 }
