@@ -13,9 +13,7 @@ public class Main {
 
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : King
-    * make the movement on board with restrictions
-    * castling (once rook and king are coded)
+    * CURRENTLY WORKING ON : castling
     * winCondition
     * ask ChatGPT about special interactions with Stockfish
     *
@@ -24,7 +22,7 @@ public class Main {
     * BISHOP (DONE)
     * ROOK (DONE)
     * KNIGHT (DONE)
-    * KING (STARTED)
+    * KING (DONE)
     * QUEEN (DONE)
     * */
 
