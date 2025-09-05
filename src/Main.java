@@ -12,7 +12,7 @@ import static java.lang.Thread.sleep;
 public class Main {
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : queen
+    * CURRENTLY WORKING ON : King
     * make the movement on board with restrictions
     * castling (once rook and king are coded)
     * winCondition
@@ -23,8 +23,8 @@ public class Main {
     * BISHOP (DONE)
     * ROOK (DONE)
     * KNIGHT (DONE)
-    * KING (NOT STARTED)
-    * QUEEN (CURRENTLY WORKING ON)
+    * KING (STARTED)
+    * QUEEN (DONE)
     * */
 
     //Changes the amount of seconds between
