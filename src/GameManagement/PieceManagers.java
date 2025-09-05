@@ -5,15 +5,7 @@ import Pieces.Piece;
 
 public class PieceManagers {
     private static char[][] Board = new char[8][8];
-    private static char[][] Boardcolors;
-
-    /**
-     * Basic Constructor
-     * IMPORTANT SIDE NOTE : Always do Board[letter][number]
-     */
-    public PieceManagers() {
-        Boardcolors = fillColorBoard(); //Not gonna use for now
-    }
+    public static char[][] Boardcolors = fillColorBoard();
 
     /**
      * Getter for the board with the pieces
@@ -35,15 +27,15 @@ public class PieceManagers {
      * Fills the basic colors of a chess baord
      * @return char[][] with the colors only
      */
-    private char[][] fillColorBoard() {
-        return new char[][]{{'\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C'},
-                            {'\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B'},
-                            {'\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C'},
-                            {'\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B'},
-                            {'\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C'},
-                            {'\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B'},
-                            {'\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C'},
-                            {'\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B','\u2B1C','\u2B1B'}};
+    public static char[][] fillColorBoard() {
+        return new char[][]{{'▒','█','▒','█','▒','█','▒','█'},
+                            {'█','▒','█','▒','█','▒','█','▒'},
+                            {'▒','█','▒','█','▒','█','▒','█'},
+                            {'█','▒','█','▒','█','▒','█','▒'},
+                            {'▒','█','▒','█','▒','█','▒','█'},
+                            {'█','▒','█','▒','█','▒','█','▒'},
+                            {'▒','█','▒','█','▒','█','▒','█'},
+                            {'█','▒','█','▒','█','▒','█','▒'}};
     }
 
     /**
@@ -63,9 +55,15 @@ public class PieceManagers {
                         ((Pawn) p).promotion(MovementChar[5]);
                     }
                 }
+                break;
             }
+        }
+        //checks for deactivated pieces
+        for (Piece p : GameManager.getGameObjects()) {
             if(!p.isActive){
                 GameManager.getGameObjects().remove(p);
+                /*DO NOT REMOVE BREAK!!!
+                If you remove the break, the array list would of been altered and then it will thrown an error */
                 break;
             }
         }
@@ -86,7 +84,7 @@ public class PieceManagers {
                 temp--;
                 for (int y = 0; y < Board[0].length; y++) {
                     if(Board[i][y] == '\u0000'){
-                        System.out.print("\t");
+                        System.out.print(PieceManagers.Boardcolors[i][y] + "\t");
                     } else {
                         System.out.print(Board[i][y] + "\t");
                     }
@@ -101,7 +99,7 @@ public class PieceManagers {
                 temp++;
                 for (int y = 0; y < Board.length; y++) {
                     if(Board[i][y] == '\u0000'){
-                        System.out.print("\t");
+                        System.out.print(PieceManagers.Boardcolors[i][y] + "\t");
                     } else {
                         System.out.print(Board[i][y] + "\t");
                     }

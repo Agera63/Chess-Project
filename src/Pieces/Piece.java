@@ -161,9 +161,17 @@ public abstract class Piece {
                         }
                     }
                 } else if (movementType.equals("vertical") && PieceToMove instanceof Rook) {
-
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    }
                 } else if (movementType.equals("horizontal") && PieceToMove instanceof Rook) {
-
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                        return true;
+                    }
                 } else if (movementType.equals("vertical") && PieceToMove instanceof Queen) {
 
                 } else if (movementType.equals("horizontal") && PieceToMove instanceof Queen) {
@@ -209,26 +217,40 @@ public abstract class Piece {
     private boolean anyPieceBlocking(Pos finalPos, String movementType){
         int slotsToCheck = Pos.squaresMoved(movementType, this.position, finalPos);
         for(int i = 1; i <= slotsToCheck; i++){
-            char charOnBoard;
-
-            //Checks if we are out of bounds of the 2d board.
             try {
                 if(movementType.equals("vertical")) {
                     //checks if we are going to add or substract for the position
                     if(this.position.num < finalPos.num){
-
+                        if(PieceManagers.getBoard()[this.position.num + i][this.position.letter] != '\u0000'){
+                            if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color) {
+                                return true;
+                            }
+                        }
                     } else {
-
+                        if(PieceManagers.getBoard()[this.position.num - i][this.position.letter] != '\u0000'){
+                            if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color) {
+                                return true;
+                            }
+                        }
                     }
-                    return true;
                 } else if (movementType.equals("horizontal")) {
-
+                    if(this.position.letter < finalPos.letter){
+                        if(PieceManagers.getBoard()[this.position.num][this.position.letter + i] != '\u0000'){
+                            if (findPieceOfPos(new Pos(this.position.num, this.position.letter + i)).color == this.color) {
+                                return true;
+                            }
+                        }
+                    } else {
+                        if(PieceManagers.getBoard()[this.position.num][this.position.letter - i] != '\u0000'){
+                            if (findPieceOfPos(new Pos(this.position.num, this.position.letter - i)).color == this.color) {
+                                return true;
+                            }
+                        }
+                    }
                 } else if (movementType.equals("diagonal")) {
-
                     //Up right
                     if(this.position.num < finalPos.num && this.position.letter < finalPos.letter){
-                        charOnBoard = PieceManagers.getBoard()[this.position.num + i][this.position.letter + i];
-                        if(charOnBoard != '\u0000'){
+                        if(PieceManagers.getBoard()[this.position.num + i][this.position.letter + i] != '\u0000'){
                             if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString())){
                                 if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter + i)).color == this.color) {
                                     return true;
@@ -239,8 +261,7 @@ public abstract class Piece {
                         }
                         //Down Right
                     } else if(this.position.num > finalPos.num && this.position.letter < finalPos.letter){
-                        charOnBoard = PieceManagers.getBoard()[this.position.num - i][this.position.letter + i];
-                        if(charOnBoard != '\u0000'){
+                        if(PieceManagers.getBoard()[this.position.num - i][this.position.letter + i] != '\u0000'){
                             if(finalPos.posToString().equals(new Pos(this.position.num - i, this.position.letter + i).posToString())){
                                 if (findPieceOfPos(new Pos(this.position.num - i, this.position.letter + i)).color == this.color) {
                                     return true;
@@ -251,8 +272,7 @@ public abstract class Piece {
                         }
                         //Up Left
                     } else if(this.position.num < finalPos.num && this.position.letter > finalPos.letter) {
-                        charOnBoard = PieceManagers.getBoard()[this.position.num + i][this.position.letter - i];
-                        if(charOnBoard != '\u0000'){
+                        if(PieceManagers.getBoard()[this.position.num + i][this.position.letter - i] != '\u0000'){
                             if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter - i).posToString())){
                                 if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter - i)).color == this.color) {
                                     return true;
@@ -263,8 +283,7 @@ public abstract class Piece {
                         }
                         //Down Left
                     } else if (this.position.num > finalPos.num && this.position.letter > finalPos.letter) {
-                        charOnBoard = PieceManagers.getBoard()[this.position.num - i][this.position.letter - i];
-                        if(charOnBoard != '\u0000'){
+                        if(PieceManagers.getBoard()[this.position.num - i][this.position.letter - i] != '\u0000'){
                             if(finalPos.posToString().equals(new Pos(this.position.num - i, this.position.letter - i).posToString())){
                                 if (findPieceOfPos(new Pos(this.position.num - i, this.position.letter - i)).color == this.color) {
                                     return true;
@@ -276,6 +295,7 @@ public abstract class Piece {
                     }
                 }
             } catch (Exception e) {
+                //If any exception is caught, we think the move is invalid (to look into)
                 return true;
             }
         }
