@@ -12,12 +12,19 @@ import static java.lang.Thread.sleep;
 public class Main {
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : pawn movement twice in begining.
+    * CURRENTLY WORKING ON : queen
     * make the movement on board with restrictions
     * castling (once rook and king are coded)
     * winCondition
-    * en passant
     * ask ChatGPT about special interactions with Stockfish
+    *
+    * PIECE COMPLETION :
+    * PAWN (ALMOST DONE) en passant
+    * BISHOP (DONE)
+    * ROOK (DONE)
+    * KNIGHT (DONE)
+    * KING (NOT STARTED)
+    * QUEEN (CURRENTLY WORKING ON)
     * */
 
     //Changes the amount of seconds between

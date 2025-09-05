@@ -123,7 +123,6 @@ public abstract class Piece {
                 return false;
             } else {
                 String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
-                //Logic for all the white pieces
                 if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
                     if(PieceToMove.color){
                         if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
@@ -160,29 +159,21 @@ public abstract class Piece {
                             }
                         }
                     }
-                } else if (movementType.equals("vertical") && PieceToMove instanceof Rook) {
+                } else if ((movementType.equals("vertical") || movementType.equals("horizontal")) && PieceToMove instanceof Rook) {
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
                     } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
                     }
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof Rook) {
+                } else if ((movementType.equals("vertical") || movementType.equals("horizontal") || movementType.equals("diagonal"))
+                        && PieceToMove instanceof Queen) {
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
                     } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) && !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
                         return true;
                     }
-                } else if (movementType.equals("vertical") && PieceToMove instanceof Queen) {
-
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof Queen) {
-
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof Queen) {
-
-                } else if (movementType.equals("vertical") && PieceToMove instanceof King) {
-
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof King) {
-
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof King) {
+                } else if ((movementType.equals("vertical") || movementType.equals("horizontal") || movementType.equals("diagonal")
+                        && PieceToMove instanceof King)) {
 
                 } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
                     //if something is there, check color then it can be valid
@@ -222,13 +213,15 @@ public abstract class Piece {
                     //checks if we are going to add or substract for the position
                     if(this.position.num < finalPos.num){
                         if(PieceManagers.getBoard()[this.position.num + i][this.position.letter] != '\u0000'){
-                            if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color) {
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
                                 return true;
                             }
                         }
                     } else {
                         if(PieceManagers.getBoard()[this.position.num - i][this.position.letter] != '\u0000'){
-                            if (findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color) {
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
                                 return true;
                             }
                         }
@@ -236,13 +229,15 @@ public abstract class Piece {
                 } else if (movementType.equals("horizontal")) {
                     if(this.position.letter < finalPos.letter){
                         if(PieceManagers.getBoard()[this.position.num][this.position.letter + i] != '\u0000'){
-                            if (findPieceOfPos(new Pos(this.position.num, this.position.letter + i)).color == this.color) {
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
                                 return true;
                             }
                         }
                     } else {
                         if(PieceManagers.getBoard()[this.position.num][this.position.letter - i] != '\u0000'){
-                            if (findPieceOfPos(new Pos(this.position.num, this.position.letter - i)).color == this.color) {
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
                                 return true;
                             }
                         }
