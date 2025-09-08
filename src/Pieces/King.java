@@ -6,12 +6,15 @@ import Position.Pos;
 
 public class King extends Piece{
 
+    private boolean canCastle;
+
     /**
      * Creates a Pieces.King depending on the piece color.
      * @param color Color of the piece (true = black / false = white)
      */
     public King(boolean color){
         super("King", 'K', new Pos(0,4), color);
+        canCastle = true;
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color){
             this.icon = 'k';
@@ -44,6 +47,14 @@ public class King extends Piece{
             this.position = Pos.stringToPos(placeToMove);
         }
         PieceManagers.setBoard(temporaryBoard);
+    }
+
+    /**
+     * Returns the canCastle variable
+     * @return true, if can castle / false, if can't castle
+     */
+    public boolean getCanCastle(){
+        return canCastle;
     }
 
     @Override

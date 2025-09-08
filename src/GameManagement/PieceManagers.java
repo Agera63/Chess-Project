@@ -1,7 +1,9 @@
 package GameManagement;
 
+import Pieces.King;
 import Pieces.Pawn;
 import Pieces.Piece;
+import Pieces.Rook;
 
 public class PieceManagers {
     private static char[][] Board = new char[8][8];
@@ -107,6 +109,16 @@ public class PieceManagers {
                 System.out.println();
             }
         }
+    }
+
+    /**
+     * Checking to see if we can castle the rook and the king
+     * @param r The rook we are checking
+     * @param k The King we are checking
+     * @return
+     */
+    public static boolean canCastle(Rook r, King k) {
+        return k.getCanCastle() && r.getCanCastle() && k.color == r.color;
     }
 
     /**

@@ -108,7 +108,7 @@ public abstract class Piece {
             }
         }
         return null;
-     }
+    }
 
     /**
      * Checks if the move the user is trying to do is valid
@@ -191,6 +191,29 @@ public abstract class Piece {
                             !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
                         return true;
+                    }
+                } else if (movementType.equals("horizontal") && PieceToMove instanceof King) {
+                    Rook r;
+                    if(finalPosition.posToString().equals("g1")){
+                        r = (Rook) findPieceOfPos(Pos.stringToPos("h1"));
+                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
+
+                        }
+                    } else if (finalPosition.posToString().equals("c1")){
+                        r = (Rook) findPieceOfPos(Pos.stringToPos("a1"));
+                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
+
+                        }
+                    } else if (finalPosition.posToString().equals("g8")){
+                        r = (Rook) findPieceOfPos(Pos.stringToPos("h8"));
+                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
+
+                        }
+                    } else if (finalPosition.posToString().equals("c8")){
+                        r = (Rook) findPieceOfPos(Pos.stringToPos("h1"));
+                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
+
+                        }
                     }
                 } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
                     //if something is there, check color then it can be valid

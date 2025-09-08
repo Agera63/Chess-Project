@@ -8,6 +8,7 @@ public class Rook extends Piece{
 
     private static boolean firstWhite = true;
     private static boolean firstBlack = true;
+    private boolean canCastle;
 
     /**
      * Creates a Pieces.Rook depending on the piece color.
@@ -15,6 +16,7 @@ public class Rook extends Piece{
      */
     public Rook(boolean color){
         super("Rook", 'R', new Pos(0, 0), color);
+        canCastle = true;
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color){
             this.icon = 'r';
@@ -42,6 +44,7 @@ public class Rook extends Piece{
      */
     public Rook(boolean color, Pos p){
         super("Rook", 'R', p, color);
+        canCastle = false;
         //If its a black piece, I need to create it on a different side of board and different icon.
         if (!color) {
             this.icon = 'r';
@@ -50,6 +53,13 @@ public class Rook extends Piece{
         drawPieces();
     }
 
+    /**
+     * Returns the canCastle variable
+     * @return true, if can castle / false, if can't castle
+     */
+    public boolean getCanCastle(){
+        return canCastle;
+    }
 
     /**
      * Movement that the piece can do.
