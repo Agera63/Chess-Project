@@ -5,6 +5,7 @@ import GameManagement.PieceManagers;
 import Position.Pos;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class Piece {
     public static ArrayList<Piece> pieceTable = new ArrayList<>();
@@ -13,6 +14,7 @@ public abstract class Piece {
     public boolean isActive;
     public boolean color; //true = white and false = black
     public Pos position;
+    private static HashMap<String, String> castlingMap;
 
     /**
      * Pieces.Piece constructor. This is everything any piece of the game needs.
@@ -183,6 +185,15 @@ public abstract class Piece {
                     }
                 } else if ((movementType.equals("vertical") || movementType.equals("horizontal") ||
                         movementType.equals("diagonal") && PieceToMove instanceof King)) {
+                    //We first check if the king wants to castle with a rook
+                    String strFinalPos = finalPosition.posToString();
+                    if(movementType.equals("horizontal") && (strFinalPos.equals("g1") || strFinalPos.equals("c1") ||
+                            strFinalPos.equals("g8") || strFinalPos.equals("c8"))){
+                        Rook r = (Rook) findPieceOfPos(Pos.stringToPos(castlingMap.get(strFinalPos)));
+                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
+
+                        }
+                    }
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
                             !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
@@ -191,29 +202,6 @@ public abstract class Piece {
                             !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
                         return true;
-                    }
-                } else if (movementType.equals("horizontal") && PieceToMove instanceof King) {
-                    Rook r;
-                    if(finalPosition.posToString().equals("g1")){
-                        r = (Rook) findPieceOfPos(Pos.stringToPos("h1"));
-                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
-
-                        }
-                    } else if (finalPosition.posToString().equals("c1")){
-                        r = (Rook) findPieceOfPos(Pos.stringToPos("a1"));
-                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
-
-                        }
-                    } else if (finalPosition.posToString().equals("g8")){
-                        r = (Rook) findPieceOfPos(Pos.stringToPos("h8"));
-                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
-
-                        }
-                    } else if (finalPosition.posToString().equals("c8")){
-                        r = (Rook) findPieceOfPos(Pos.stringToPos("h1"));
-                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
-
-                        }
                     }
                 } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
                     //if something is there, check color then it can be valid
@@ -239,6 +227,17 @@ public abstract class Piece {
             }
         } catch (Exception e){
             return false;
+        }
+    }
+
+    private static void initalizeCastleMap(){
+        if(castlingMap == null){
+            castlingMap = new HashMap<>();
+            //Example : if king moves to g1, rook goes to f1
+            castlingMap.put("g1", "f1");
+            castlingMap.put("c1", "d1");
+            castlingMap.put("g8", "f8");
+            castlingMap.put("c8", "d8");
         }
     }
 
