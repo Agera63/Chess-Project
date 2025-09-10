@@ -103,7 +103,7 @@ public abstract class Piece {
      * @param position the position that I am looking for
      * @return the Piece in the position OR null if nothing is found
      */
-    private static Piece findPieceOfPos(Pos position){
+    protected static Piece findPieceOfPos(Pos position){
         for(Piece p : GameManager.getGameObjects()){
             if(position.num == p.position.num && position.letter == p.position.letter){
                 return p;
@@ -189,9 +189,24 @@ public abstract class Piece {
                     String strFinalPos = finalPosition.posToString();
                     if(movementType.equals("horizontal") && (strFinalPos.equals("g1") || strFinalPos.equals("c1") ||
                             strFinalPos.equals("g8") || strFinalPos.equals("c8"))){
+                        if(castlingMap == null){
+                            initalizeCastleMap();
+                        }
                         Rook r = (Rook) findPieceOfPos(Pos.stringToPos(castlingMap.get(strFinalPos)));
                         if(PieceManagers.canCastle(r, (King) PieceToMove)){
-
+                            if(strFinalPos.equals("g1") &&
+                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("g1"), movementType)){
+                                return true;
+                            } else if(strFinalPos.equals("c1") &&
+                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("b1"), movementType)){
+                                return true;
+                            } else if(strFinalPos.equals("g8") &&
+                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("g8"), movementType)){
+                                return true;
+                            } else if(strFinalPos.equals("c8") &&
+                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("b8"), movementType)){
+                                return true;
+                            }
                         }
                     }
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
@@ -230,15 +245,29 @@ public abstract class Piece {
         }
     }
 
+    /**
+     * Initializes the castleing map.
+     */
     private static void initalizeCastleMap(){
         if(castlingMap == null){
             castlingMap = new HashMap<>();
-            //Example : if king moves to g1, rook goes to f1
-            castlingMap.put("g1", "f1");
-            castlingMap.put("c1", "d1");
-            castlingMap.put("g8", "f8");
-            castlingMap.put("c8", "d8");
+            //Example : if king moves to g1, rook to move is at h1
+            castlingMap.put("g1", "h1");
+            castlingMap.put("c1", "a1");
+            castlingMap.put("g8", "h8");
+            castlingMap.put("c8", "a8");
         }
+    }
+
+    /**
+     * Returns the castleing map and makes sure its not empty
+     * @return Castleingmap
+     */
+    public static HashMap<String, String > getCastlingMap(){
+        if(castlingMap == null){
+            initalizeCastleMap();
+        }
+        return castlingMap;
     }
 
     /**

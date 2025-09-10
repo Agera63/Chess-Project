@@ -4,11 +4,15 @@ import GameManagement.GameManager;
 import GameManagement.PieceManagers;
 import Position.Pos;
 
+import java.util.HashMap;
+
 public class Rook extends Piece{
 
     private static boolean firstWhite = true;
     private static boolean firstBlack = true;
     private boolean canCastle;
+    //First string is the position the king moves too, second string is where the rook moves
+    private HashMap<String, String> castlePositions;
 
     /**
      * Creates a Pieces.Rook depending on the piece color.
@@ -88,10 +92,31 @@ public class Rook extends Piece{
         PieceManagers.setBoard(temporaryBoard);
     }
 
+    protected char[][] castleMovement(char[][] temporaryBoard, String placeToMove){
+        if(castlePositions == null){
+            initalizeCastlePositions();
+        }
+
+        //We change the place to move from the kings place to the rooks place based on the king movement
+        placeToMove = castlePositions.get(Piece.getCastlingMap().get(placeToMove));
+        temporaryBoard[this.position.num][this.position.letter] = '\u0000';
+        temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;
+        this.position = Pos.stringToPos(placeToMove);
+        return temporaryBoard;
+    }
+
     @Override
     public void deactivate() {
         if(isActive){
             isActive = false;
         }
+    }
+
+    private void initalizeCastlePositions(){
+        castlePositions = new HashMap<>();
+        castlePositions.put(Piece.getCastlingMap().get("g1"), "f1");
+        castlePositions.put(Piece.getCastlingMap().get("c1"), "d1");
+        castlePositions.put(Piece.getCastlingMap().get("g8"), "f8");
+        castlePositions.put(Piece.getCastlingMap().get("c8"), "d8");
     }
 }

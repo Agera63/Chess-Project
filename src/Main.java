@@ -13,9 +13,10 @@ public class Main {
 
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : castling
-    * winCondition
+    * CURRENTLY WORKING ON : winCondition
     * ask ChatGPT about special interactions with Stockfish
+    * When your done with checking if queen in check, fix rule where you can't castle while in check AND can not castle
+    * into a check
     *
     * PIECE COMPLETION :
     * PAWN (ALMOST DONE) en passant

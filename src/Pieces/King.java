@@ -4,6 +4,8 @@ import GameManagement.GameManager;
 import GameManagement.PieceManagers;
 import Position.Pos;
 
+import java.util.HashMap;
+
 public class King extends Piece{
 
     private boolean canCastle;
@@ -28,23 +30,33 @@ public class King extends Piece{
     @Override
     public void mouvement(String placeToMove){
         char[][] temporaryBoard = PieceManagers.getBoard();
+        Rook r = (Rook) Piece.findPieceOfPos(Pos.stringToPos(Piece.getCastlingMap().get(placeToMove)));
 
-        if(!this.checkPosToMove(this, Pos.stringToPos(placeToMove), true)){
-            //if we are in this condition, it means that there is a piece of the opposit color that will be removed.
-            for(Piece p : GameManager.getGameObjects()){
-                String PStringPosition = p.position.posToString();
-                if(placeToMove.equals(PStringPosition)){
-                    p.deactivate();
-                    temporaryBoard[this.position.num][this.position.letter] = '\u0000';
-                    temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;
-                    this.position = Pos.stringToPos(placeToMove);
-                    break;
-                }
-            }
-        } else {
+        //Checks if we want to caslte the king
+        if((placeToMove.equals("g1") || placeToMove.equals("c1") ||
+                placeToMove.equals("g8") || placeToMove.equals("c8")) && PieceManagers.canCastle(r, this)) {
             temporaryBoard[this.position.num][this.position.letter] = '\u0000';
             temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;
             this.position = Pos.stringToPos(placeToMove);
+            temporaryBoard = r.castleMovement(temporaryBoard, placeToMove);
+        } else {
+            if(!this.checkPosToMove(this, Pos.stringToPos(placeToMove), true)){
+                //if we are in this condition, it means that there is a piece of the opposit color that will be removed.
+                for(Piece p : GameManager.getGameObjects()){
+                    String PStringPosition = p.position.posToString();
+                    if(placeToMove.equals(PStringPosition)){
+                        p.deactivate();
+                        temporaryBoard[this.position.num][this.position.letter] = '\u0000';
+                        temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;
+                        this.position = Pos.stringToPos(placeToMove);
+                        break;
+                    }
+                }
+            } else {
+                temporaryBoard[this.position.num][this.position.letter] = '\u0000';
+                temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;
+                this.position = Pos.stringToPos(placeToMove);
+            }
         }
         PieceManagers.setBoard(temporaryBoard);
     }
