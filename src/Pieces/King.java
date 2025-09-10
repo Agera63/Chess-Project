@@ -57,6 +57,7 @@ public class King extends Piece{
                 temporaryBoard[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = this.icon;
                 this.position = Pos.stringToPos(placeToMove);
             }
+            canCastle = false;
         }
         PieceManagers.setBoard(temporaryBoard);
     }
