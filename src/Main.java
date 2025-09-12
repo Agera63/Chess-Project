@@ -4,6 +4,7 @@ import GameManagement.PieceManagers;
 import Pieces.Piece;
 
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -32,9 +33,7 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
-        //Before anything, do not forget to set the StockFish path.
-        GameManager GM = new GameManager("C:\\Engines\\stockfish\\stockfish-windows-x86-64.exe");
+        GameManager GM = new GameManager();
 
         //Picks color of the player.
         System.out.println("What color would you like to be? \n[W]hite, [B]lack, [R]andom?");
@@ -84,6 +83,8 @@ public class Main {
                 try {
                     PieceToMove = StockFishChessClient.getBestMoveFromBoard(PieceManagers.getBoard()).toCharArray();
                 } catch (IOException e) {
+                    System.out.println("Could not find Stockfish client. Make sure the entered path is correct. " +
+                            "More details on the \"Read.md\" file in the Github Repository at \"https://github.com/Agera63/ChessProject\" or \"StockFishPath.txt\" file.");
                     throw new RuntimeException(e);
                 }
             }

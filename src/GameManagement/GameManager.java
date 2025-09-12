@@ -2,7 +2,12 @@ package GameManagement;
 
 import Pieces.Piece;
 
+import java.io.Closeable;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class GameManager {
 
@@ -10,8 +15,8 @@ public class GameManager {
     public static String StockFishPath;
     private static boolean color; //ture = white | false = black
 
-    public GameManager(String StockFishPath) {
-        this.StockFishPath = StockFishPath;
+    public GameManager() {
+        this.StockFishPath = setStockFishPath();
     }
 
     /**
@@ -46,6 +51,44 @@ public class GameManager {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * Reads the "StockFishPath.txt" file to get the StockFish path
+     */
+    private static String setStockFishPath() {
+        FileInputStream fichier = openFileReader("StockFishPath.txt");
+        Scanner lecteurFichier = new Scanner(fichier);
+        StringBuilder stockFishPath = new StringBuilder();
+
+        char[] ligne = lecteurFichier.nextLine().toCharArray();
+        for (char c: ligne) {
+            if(c != '"'){
+                stockFishPath.append(c);
+            }
+        }
+
+        closeFile(fichier);
+        return stockFishPath.toString();
+    }
+
+
+    private static FileInputStream openFileReader(String nomFichier) {
+        FileInputStream fichier = null;
+        try {
+            fichier = new FileInputStream(nomFichier);
+        } catch (FileNotFoundException ex) {
+            System.out.println("Error reading \"StockFishPath.txt\" file.");
+        }
+        return fichier;
+    }
+
+    private static void closeFile(Closeable fichier) {
+        try {
+            fichier.close();
+        } catch (IOException ex) {
+            System.out.println("Error closing \"StockFishPath.txt\" file.");
         }
     }
 }
