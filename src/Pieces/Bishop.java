@@ -32,6 +32,7 @@ public class Bishop extends Piece{
                 this.position = new Pos(0,5);
             }
         }
+        GameManager.getGameObjects().add(this);
     }
 
     /**
@@ -46,7 +47,16 @@ public class Bishop extends Piece{
             this.icon = 'b';
         }
         PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        GameManager.getGameObjects().add(this);
         drawPieces();
+    }
+
+    /**
+     * This constructor is for the SimulationClass. To create temporary pieces and simulate everything
+     * @param Bishop The piece we want to make a copy of.
+     */
+    public Bishop(Bishop Bishop) {
+        super(Bishop.name, Bishop.icon, new Pos(Bishop.position.num, Bishop.position.letter), Bishop.color);
     }
 
     /**

@@ -1,4 +1,4 @@
-""
+"D:\Engines\stockfish\stockfish-windows-x86-64.exe"
 
 Steps to insert correct path :
 1. Place your Stockfish engine in a file (where ever you like).
@@ -22,5 +22,5 @@ Windows :   stockfish.exe
 Possible errors :
 (Error reading "StockFishPath.txt" file.) : you moved this file. Delete this and re-download it. Should work then.
 (Could not find Stockfish client. ...) : Reread the steps and make sure you did them properly. If you did them correctly,
-make sure there are no spaces or extra characters in the path. If you want to make sure the path is fine, erase
-everything on the first line only and paste the path again. It should work then.
+make sure there are no spaces or extra characters (at the beginning and at the end) in the path. If you want to make
+sure the path is fine, erase everything on the first line only and paste the path again. It should work then.

@@ -49,8 +49,7 @@ public class PieceManagers {
         String PositionToMove = String.valueOf(MovementChar[3]) + String.valueOf(MovementChar[4]).toLowerCase();
 
         for (Piece p : GameManager.getGameObjects()){
-            String getCompletePosDebug = p.position.posToString();
-            if(getCompletePosDebug.equals(PieceToMove.toLowerCase())){
+            if(p.position.posToString().equals(PieceToMove.toLowerCase())){
                 p.mouvement(PositionToMove.toLowerCase());
                 if(MovementChar.length == 6 && p instanceof Pawn){
                     if((p.position.num == 0 && !GameManager.getColor()) || (p.position.num == 7 && GameManager.getColor())){
@@ -69,6 +68,16 @@ public class PieceManagers {
                 break;
             }
         }
+
+        if(King.findWhiteKing() != null && King.findBlackKing() != null){
+            if(King.findWhiteKing().isChecked()){
+                System.out.println("White King is checked");
+            }
+            if(King.findBlackKing().isChecked()){
+                System.out.println("Black King is checked");
+            }
+        }
+
         drawBoard();
     }
 

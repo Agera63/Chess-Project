@@ -14,7 +14,7 @@ public class Main {
 
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : winCondition
+    * CURRENTLY WORKING ON : check if the color is different
     * ask ChatGPT about special interactions with Stockfish
     * When your done with checking if queen in check, fix rule where you can't castle while in check AND can not castle
     * into a check
@@ -91,12 +91,16 @@ public class Main {
             PieceManagers.Update(PieceToMove);
             System.out.println("----------------------------------");
 
+
             //Lest the user see the board and think out his next move;
             pause(timeBetweenMoves);
 
+
             //Makes sure the turn changes and the next person can play
             turn = !turn;
+            winCondition = GameManager.isGameOVer();
         }while(!winCondition);
+        GameManager.whoWon();
     }
 
     private static void pause(int seconds){

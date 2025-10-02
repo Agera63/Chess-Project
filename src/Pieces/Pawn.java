@@ -23,6 +23,15 @@ public class Pawn extends Piece{
             this.icon = 'p';
             this.position = pawnPosition(color);
         }
+        GameManager.getGameObjects().add(this);
+    }
+
+    /**
+     * This constructor is for the SimulationClass. To create temporary pieces and simulate everything
+     * @param Pawn The piece we want to make a copy of.
+     */
+    public Pawn(Pawn Pawn) {
+        super(Pawn.name, Pawn.icon, new Pos(Pawn.position.num, Pawn.position.letter), Pawn.color);
     }
 
     @Override

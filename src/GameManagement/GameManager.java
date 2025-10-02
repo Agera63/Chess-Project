@@ -1,5 +1,6 @@
 package GameManagement;
 
+import Pieces.King;
 import Pieces.Piece;
 
 import java.io.Closeable;
@@ -73,6 +74,21 @@ public class GameManager {
         return stockFishPath.toString();
     }
 
+    public static boolean isGameOVer(){
+        if(King.findWhiteKing() == null || King.findBlackKing() == null){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static void whoWon(){
+        if(King.findWhiteKing() == null){
+            System.out.println("Black won!");
+        } else if (King.findBlackKing() == null){
+            System.out.println("White won!");
+        }
+    }
 
     private static FileInputStream openFileReader(String nomFichier) {
         FileInputStream fichier = null;

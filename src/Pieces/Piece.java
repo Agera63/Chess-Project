@@ -2,13 +2,14 @@ package Pieces;
 
 import GameManagement.GameManager;
 import GameManagement.PieceManagers;
+import GameManagement.SimulationClass;
 import Position.Pos;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Piece {
-    public static ArrayList<Piece> pieceTable = new ArrayList<>();
+
     public String name;
     public char icon;
     public boolean isActive;
@@ -28,8 +29,6 @@ public abstract class Piece {
         this.isActive = true;
         this.position = position;
         this.color = color;
-        GameManager.getGameObjects().add(this);
-        pieceTable.add(this);
     }
 
     /**
@@ -68,7 +67,7 @@ public abstract class Piece {
      */
     public static void drawPieces(){
         char[][] temp = PieceManagers.getBoard();
-        for(Piece p : pieceTable) {
+        for(Piece p : GameManager.getGameObjects()) {
             temp[p.position.num][p.position.letter] = p.icon;
         }
         PieceManagers.setBoard(temp);
@@ -83,7 +82,7 @@ public abstract class Piece {
      * @return true if no piece of same color in that slot / false if there is a piece in that position
      */
     public boolean checkPosToMove(Piece p, Pos posToMove, boolean condition){
-        for(Piece tempPiece : pieceTable){
+        for(Piece tempPiece : GameManager.getGameObjects()) {
             if(condition) {
                 if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
                     return false;
@@ -113,7 +112,7 @@ public abstract class Piece {
     }
 
     /**
-     * Checks if the move the user is trying to do is valid
+     * Checks if the move the user is trying to do is valid (checks for checks too)
      * @return true if valid / false if not valid
      */
     public static boolean validMove(char[] MovementChar){
@@ -122,123 +121,23 @@ public abstract class Piece {
         Piece PieceToMove = findPieceOfPos(Pos.stringToPos(String.valueOf(MovementChar[0]) +
                 String.valueOf(MovementChar[1]).toLowerCase()));
 
+        //find both kings
+        King whiteKing = King.findWhiteKing();
+        King blackKing = King.findBlackKing();
+
         try{
             if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
                 return false;
+            } else if((whiteKing.isChecked() || blackKing.isChecked()) && (whiteKing != null && blackKing != null)) {
+                King k = whiteKing.isChecked() ? whiteKing : blackKing;
+                return SimulationClass.kingSim(PieceToMove, finalPosition, k);
             } else {
-                String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
-                if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
-                    if(PieceToMove.color){
-                        if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
-                                                PieceToMove.position.num == 1)) &&
-                                finalPosition.num - PieceToMove.position.num  > 0){
-                            return true;
-                        }
-                    } else {
-                        if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                                (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                        (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
-                                                PieceToMove.position.num == 6)) &&
-                                PieceToMove.position.num - finalPosition.num > 0) {
-                            return true;
-                        }
-                    }
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof Pawn) {
-                    if(PieceToMove.color){
-                        if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                                && finalPosition.num - PieceToMove.position.num  > 0
-                                && findPieceOfPos(finalPosition) != null){
-                            if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
-                                return true;
-                            }
-                        }
-                    } else {
-                        if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                                Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
-                                && PieceToMove.position.num - finalPosition.num > 0
-                                && findPieceOfPos(finalPosition) != null){
-                            if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
-                                return true;
-                            }
-                        }
-                    }
-                } else if ((movementType.equals("vertical") || movementType.equals("horizontal")) &&
-                        PieceToMove instanceof Rook) {
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    }
-                } else if ((movementType.equals("vertical") || movementType.equals("horizontal")
-                        || movementType.equals("diagonal")) && PieceToMove instanceof Queen) {
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    }
-                } else if ((movementType.equals("vertical") || movementType.equals("horizontal") ||
-                        movementType.equals("diagonal") && PieceToMove instanceof King)) {
-                    //We first check if the king wants to castle with a rook
-                    String strFinalPos = finalPosition.posToString();
-                    if(movementType.equals("horizontal") && (strFinalPos.equals("g1") || strFinalPos.equals("c1") ||
-                            strFinalPos.equals("g8") || strFinalPos.equals("c8"))){
-                        if(castlingMap == null){
-                            initalizeCastleMap();
-                        }
-                        Rook r = (Rook) findPieceOfPos(Pos.stringToPos(castlingMap.get(strFinalPos)));
-                        if(PieceManagers.canCastle(r, (King) PieceToMove)){
-                            if(strFinalPos.equals("g1") &&
-                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("g1"), movementType)){
-                                return true;
-                            } else if(strFinalPos.equals("c1") &&
-                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("b1"), movementType)){
-                                return true;
-                            } else if(strFinalPos.equals("g8") &&
-                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("g8"), movementType)){
-                                return true;
-                            } else if(strFinalPos.equals("c8") &&
-                                    !PieceToMove.anyPieceBlocking(Pos.stringToPos("b8"), movementType)){
-                                return true;
-                            }
-                        }
-                    }
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
-                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
-                        return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
-                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
-                        return true;
-                    }
-                } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
-                    //if something is there, check color then it can be valid
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                            findPieceOfPos(finalPosition) != null &&
-                            findPieceOfPos(finalPosition).color == !PieceToMove.color){
-                        return true;
-                    }
-                    //if something is not there, its valid
-                    else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true)){
-                        return true;
-                    }
-                } else if (movementType.equals("diagonal") && PieceToMove instanceof Bishop) {
-                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
-                        return true;
-                    }
+                if(PieceToMove instanceof King) {
+                    return checkPieceMovement(PieceToMove, finalPosition) &&
+                            SimulationClass.willMoveCheckKing(PieceToMove, finalPosition);
+                } else {
+                    return checkPieceMovement(PieceToMove, finalPosition);
                 }
-                return false;
             }
         } catch (Exception e){
             return false;
@@ -248,7 +147,7 @@ public abstract class Piece {
     /**
      * Initializes the castleing map.
      */
-    private static void initalizeCastleMap(){
+    public static void initalizeCastleMap(){
         if(castlingMap == null){
             castlingMap = new HashMap<>();
             //Example : if king moves to g1, rook to move is at h1
@@ -284,15 +183,15 @@ public abstract class Piece {
                     //checks if we are going to add or substract for the position
                     if(this.position.num < finalPos.num){
                         if(PieceManagers.getBoard()[this.position.num + i][this.position.letter] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
+                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter).posToString()) &&
                                     findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
                                 return true;
                             }
                         }
                     } else {
                         if(PieceManagers.getBoard()[this.position.num - i][this.position.letter] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
-                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
+                            if(finalPos.posToString().equals(new Pos(this.position.num - i, this.position.letter).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num - i, this.position.letter)).color == this.color){
                                 return true;
                             }
                         }
@@ -300,15 +199,15 @@ public abstract class Piece {
                 } else if (movementType.equals("horizontal")) {
                     if(this.position.letter < finalPos.letter){
                         if(PieceManagers.getBoard()[this.position.num][this.position.letter + i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
-                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
+                            if(finalPos.posToString().equals(new Pos(this.position.num, this.position.letter + i).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num, this.position.letter + i)).color == this.color){
                                 return true;
                             }
                         }
                     } else {
                         if(PieceManagers.getBoard()[this.position.num][this.position.letter - i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(this.position.num + i, this.position.letter + i).posToString()) &&
-                                    findPieceOfPos(new Pos(this.position.num + i, this.position.letter)).color == this.color){
+                            if(finalPos.posToString().equals(new Pos(this.position.num, this.position.letter - i).posToString()) &&
+                                    findPieceOfPos(new Pos(this.position.num, this.position.letter - i)).color == this.color){
                                 return true;
                             }
                         }
@@ -366,5 +265,133 @@ public abstract class Piece {
             }
         }
         return false;
+    }
+
+    /**
+     * Checks if the movement for a piece is legal
+     * @param PieceToMove Piece to move
+     * @param finalPosition position the piece will go to
+     * @return true if move is legal / false if move is illegal
+     */
+    public static boolean checkPieceMovement(Piece PieceToMove, Pos finalPosition) {
+        try{
+            //start
+            String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
+            if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
+                if(PieceToMove.color){
+                    if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
+                                    (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
+                                            PieceToMove.position.num == 1)) &&
+                            finalPosition.num - PieceToMove.position.num  > 0){
+                        return true;
+                    }
+                } else {
+                    if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
+                                    (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
+                                            PieceToMove.position.num == 6)) &&
+                            PieceToMove.position.num - finalPosition.num > 0) {
+                        return true;
+                    }
+                }
+            } else if (movementType.equals("diagonal") && PieceToMove instanceof Pawn) {
+                if(PieceToMove.color){
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                            && finalPosition.num - PieceToMove.position.num  > 0
+                            && findPieceOfPos(finalPosition) != null){
+                        if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                            return true;
+                        }
+                    }
+                } else {
+                    if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                            && PieceToMove.position.num - finalPosition.num > 0
+                            && findPieceOfPos(finalPosition) != null){
+                        if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                            return true;
+                        }
+                    }
+                }
+            } else if ((movementType.equals("vertical") || movementType.equals("horizontal")) &&
+                    PieceToMove instanceof Rook) {
+                if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    return true;
+                } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    return true;
+                }
+            } else if ((movementType.equals("vertical") || movementType.equals("horizontal")
+                    || movementType.equals("diagonal")) && PieceToMove instanceof Queen) {
+                if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    return true;
+                } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    return true;
+                }
+            } else if ((movementType.equals("vertical") || movementType.equals("horizontal") ||
+                    movementType.equals("diagonal") && PieceToMove instanceof King)) {
+                //We first check if the king wants to castle with a rook
+                String strFinalPos = finalPosition.posToString();
+                if(movementType.equals("horizontal") && (strFinalPos.equals("g1") || strFinalPos.equals("c1") ||
+                        strFinalPos.equals("g8") || strFinalPos.equals("c8"))){
+                    if(castlingMap == null){
+                        initalizeCastleMap();
+                    }
+                    Rook r = (Rook) findPieceOfPos(Pos.stringToPos(castlingMap.get(strFinalPos)));
+                    if(PieceManagers.canCastle(r, (King) PieceToMove)){
+                        if(strFinalPos.equals("g1") &&
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("g1"), movementType)){
+                            return true;
+                        } else if(strFinalPos.equals("c1") &&
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("b1"), movementType)){
+                            return true;
+                        } else if(strFinalPos.equals("g8") &&
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("g8"), movementType)){
+                            return true;
+                        } else if(strFinalPos.equals("c8") &&
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("b8"), movementType)){
+                            return true;
+                        }
+                    }
+                }
+                if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
+                        Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
+                    return true;
+                } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType) &&
+                        Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
+                    return true;
+                }
+            } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
+                //if something is there, check color then it can be valid
+                if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                        findPieceOfPos(finalPosition) != null &&
+                        findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                    return true;
+                }
+                //if something is not there, its valid
+                else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true)){
+                    return true;
+                }
+            } else if (movementType.equals("diagonal") && PieceToMove instanceof Bishop) {
+                if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    return true;
+                } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                        !PieceToMove.anyPieceBlocking(finalPosition, movementType)){
+                    return true;
+                }
+            }
+            //end
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

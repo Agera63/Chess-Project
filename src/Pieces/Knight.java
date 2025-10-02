@@ -32,6 +32,7 @@ public class Knight extends Piece{
                 this.position = new Pos(0,6);
             }
         }
+        GameManager.getGameObjects().add(this);
     }
 
     /**
@@ -46,7 +47,16 @@ public class Knight extends Piece{
             this.icon = 'n';
         }
         PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        GameManager.getGameObjects().add(this);
         drawPieces();
+    }
+
+    /**
+     * This constructor is for the SimulationClass. To create temporary pieces and simulate everything
+     * @param Knight The piece we want to make a copy of.
+     */
+    public Knight(Knight Knight) {
+        super(Knight.name, Knight.icon, new Pos(Knight.position.num, Knight.position.letter), Knight.color);
     }
 
     /**

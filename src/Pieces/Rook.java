@@ -39,6 +39,16 @@ public class Rook extends Piece{
                 this.position = new Pos(0,7);
             }
         }
+        GameManager.getGameObjects().add(this);
+    }
+
+    /**
+     * This constructor is for the SimulationClass. To create temporary pieces and simulate everything
+     * @param Rook The piece we want to make a copy of.
+     */
+    public Rook(Rook Rook) {
+        super(Rook.name, Rook.icon, new Pos(Rook.position.num, Rook.position.letter), Rook.color);
+        canCastle = Rook.canCastle;
     }
 
     /**
@@ -54,6 +64,7 @@ public class Rook extends Piece{
             this.icon = 'r';
         }
         PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        GameManager.getGameObjects().add(this);
         drawPieces();
     }
 

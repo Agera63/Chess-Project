@@ -1,149 +1,147 @@
 package ChessClient.Code;
 
 import GameManagement.GameManager;
-
 import java.io.*;
 
 public class StockFishChessClient {
+    private static final String STOCKFISH_PATH = GameManager.StockFishPath;
+    private static final int SEARCH_DEPTH = 15;
+    private static final String[] UCI_INIT_COMMANDS = {"uci"};
 
-    static final String STOCKFISH_PATH = GameManager.StockFishPath;
+    // Reuse process for better performance (optional enhancement)
+    private static Process stockfishProcess;
+    private static BufferedWriter processWriter;
+    private static BufferedReader processReader;
 
-    //Call this method to get the best moves from StockFish
+    /**
+     * Get the best move from Stockfish for the current board position
+     * @param board 8x8 char array representing the chess board
+     * @return Best move in format "e2-e4" or "No move found"
+     */
     public static String getBestMoveFromBoard(char[][] board) throws IOException {
-        // 1. Convert 2D board array to FEN
         String fen = boardToFen(board);
 
-        // 2. Start Stockfish process
-        ProcessBuilder processBuilder = new ProcessBuilder(STOCKFISH_PATH);
-        processBuilder.redirectErrorStream(true); // Merge stderr with stdout
-        Process process = processBuilder.start();
-
-        BufferedWriter writer = null;
-        BufferedReader reader = null;
-        String bestMove = null;
-
         try {
-            writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            // 3. Initialize UCI protocol
-            writer.write("uci\n");
-            writer.flush();
-            waitForReady(reader);
-
-            // 4. Set position and search for best move
-            writer.write("position fen " + fen + "\n");
-            writer.flush();
-
-            writer.write("go depth 15\n");
-            writer.flush();
-
-            // 5. Read response
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("bestmove")) {
-                    String[] parts = line.split(" ");
-                    if (parts.length > 1 && !parts[1].equals("(none)")) {
-                        bestMove = parts[1];
-                    }
-                    break;
-                }
-            }
-
-        } catch (IOException e) {
-            System.err.println("Error communicating with Stockfish: " + e.getMessage());
-            throw e;
+            initializeStockfishProcess();
+            return getBestMoveFromFen(fen);
         } finally {
-            // Clean up resources
-            try {
-                if (writer != null) {
-                    writer.write("quit\n");
-                    writer.flush();
-                    writer.close();
-                }
-            } catch (IOException e) {
-                // Ignore cleanup errors
-            }
-
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                // Ignore cleanup errors
-            }
-
-            // Wait for process to terminate gracefully
-            try {
-                process.waitFor();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            process.destroyForcibly();
+            cleanupProcess();
         }
+    }
 
-        // Format the move with a hyphen
-        if (bestMove != null && bestMove.length() >= 4) {
-            String fromSquare = bestMove.substring(0, 2);
-            String toSquare = bestMove.substring(2, 4);
-            return fromSquare + "-" + toSquare;
+    private static void initializeStockfishProcess() throws IOException {
+        ProcessBuilder pb = new ProcessBuilder(STOCKFISH_PATH);
+        pb.redirectErrorStream(true);
+        stockfishProcess = pb.start();
+
+        processWriter = new BufferedWriter(new OutputStreamWriter(stockfishProcess.getOutputStream()));
+        processReader = new BufferedReader(new InputStreamReader(stockfishProcess.getInputStream()));
+
+        // Initialize UCI protocol
+        sendCommand("uci");
+        waitForUciOk();
+    }
+
+    private static String getBestMoveFromFen(String fen) throws IOException {
+        sendCommand("position fen " + fen);
+        sendCommand("go depth " + SEARCH_DEPTH);
+
+        String line;
+        while ((line = processReader.readLine()) != null) {
+            if (line.startsWith("bestmove")) {
+                String[] parts = line.split(" ");
+                if (parts.length > 1 && !parts[1].equals("(none)")) {
+                    return formatMove(parts[1]);
+                }
+                break;
+            }
         }
+        return "No move found";
+    }
 
+    private static void sendCommand(String command) throws IOException {
+        processWriter.write(command + "\n");
+        processWriter.flush();
+    }
+
+    private static String formatMove(String move) {
+        if (move != null && move.length() >= 4) {
+            System.out.println("Stockfish plays " + move.substring(0, 2) + " to " + move.substring(2, 4) + ".");
+            return move.substring(0, 2) + "-" + move.substring(2, 4);
+        }
         return "No move found";
     }
 
     private static String boardToFen(char[][] board) {
-        StringBuilder fen = new StringBuilder();
+        StringBuilder fen = new StringBuilder(80); // Pre-allocate capacity
 
-        // FEN expects rank 8 first (row 0), then rank 7, 6, 5, 4, 3, 2, 1 (row 7)
-        // But your board seems to have rank 1 at row 0, so we need to reverse
-        for (int row = 7; row >= 0; row--) { // Reverse the row order
-            int emptyCount = 0;
-            for (int col = 0; col < 8; col++) {
-                char piece = board[row][col];
-                // Check for various representations of empty squares
-                // Your board shows 'NULL' which suggests the char might be 'N' for null representation
-                if (piece == '\0' || piece == ' ' || piece == 'N') {
-                    emptyCount++;
-                } else {
-                    if (emptyCount > 0) {
-                        fen.append(emptyCount);
-                        emptyCount = 0;
-                    }
-                    fen.append(piece);
-                }
-            }
-            if (emptyCount > 0) fen.append(emptyCount);
-            if (row > 0) fen.append('/'); // Changed condition since we're going backwards
+        // Convert board to FEN notation (rank 8 to rank 1)
+        for (int row = 7; row >= 0; row--) {
+            appendRankToFen(fen, board[row]);
+            if (row > 0) fen.append('/');
         }
 
-        // FEN requires additional fields: side to move, castling, en passant, halfmove, fullmove
-        // Debug: print current color and board state
-        boolean isWhite = !GameManager.getColor();
-        char activeColor = isWhite ? 'w' : 'b';
-        fen.append(" ").append(activeColor).append(" - - 0 1");
+        // Add FEN metadata: active color, castling, en passant, halfmove, fullmove
+        boolean stockfishIsWhite = !GameManager.getColor(); // Stockfish plays opposite of player
+        fen.append(' ').append(stockfishIsWhite ? 'w' : 'b').append(" - - 0 1");
 
         return fen.toString();
     }
 
-    private static void waitForReady(BufferedReader reader) throws IOException {
-        // First wait for uciok
-        String line;
-        boolean uciReceived = false;
+    private static void appendRankToFen(StringBuilder fen, char[] rank) {
+        int emptyCount = 0;
 
-        while ((line = reader.readLine()) != null) {
-            if (line.equals("uciok")) {
-                uciReceived = true;
-                break;
+        for (char piece : rank) {
+            if (piece == '\0') {
+                emptyCount++;
+            } else {
+                if (emptyCount > 0) {
+                    fen.append(emptyCount);
+                    emptyCount = 0;
+                }
+                fen.append(piece);
             }
-            // Optional: You can print debug info
-            // System.out.println("[Stockfish UCI]: " + line);
         }
 
-        if (!uciReceived) {
-            throw new IOException("Failed to initialize UCI protocol with Stockfish");
+        if (emptyCount > 0) {
+            fen.append(emptyCount);
         }
     }
 
+    private static void waitForUciOk() throws IOException {
+        String line;
+        while ((line = processReader.readLine()) != null) {
+            if ("uciok".equals(line)) {
+                return;
+            }
+        }
+        throw new IOException("Failed to initialize UCI protocol with Stockfish");
+    }
+
+    private static void cleanupProcess() {
+        try {
+            if (processWriter != null) {
+                processWriter.write("quit\n");
+                processWriter.flush();
+                processWriter.close();
+            }
+        } catch (IOException ignored) {}
+
+        try {
+            if (processReader != null) {
+                processReader.close();
+            }
+        } catch (IOException ignored) {}
+
+        if (stockfishProcess != null) {
+            try {
+                if (!stockfishProcess.waitFor(1, java.util.concurrent.TimeUnit.SECONDS)) {
+                    stockfishProcess.destroyForcibly();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                stockfishProcess.destroyForcibly();
+            }
+        }
+    }
 }

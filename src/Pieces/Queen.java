@@ -17,6 +17,7 @@ public class Queen extends Piece{
             this.icon = 'q';
             this.position = new Pos(7, 3);
         }
+        GameManager.getGameObjects().add(this);
     }
 
     /**
@@ -31,7 +32,16 @@ public class Queen extends Piece{
             this.icon = 'q';
         }
         PieceManagers.getBoard()[p.letter][p.num] = this.icon;
+        GameManager.getGameObjects().add(this);
         drawPieces();
+    }
+
+    /**
+     * This constructor is for the SimulationClass. To create temporary pieces and simulate everything
+     * @param Queen The piece we want to make a copy of.
+     */
+    public Queen(Queen Queen) {
+        super(Queen.name, Queen.icon, new Pos(Queen.position.num, Queen.position.letter), Queen.color);
     }
 
     /**
