@@ -71,6 +71,38 @@ public class SimulationClass {
         return !isKingCheckedSim(sc.KingToMove);
     }
 
+    protected static boolean isCheckMate(King k){
+        // First, verify the king is actually in check
+        if(!isKingCheckedSim(k)) {
+            return false; // Can't be checkmate if not in check
+        }
+
+        // Try all possible moves for all pieces of the king's color
+        for(Piece p : GOCopy) {
+            if(p.color == k.color) {
+                // Try moving this piece to every square on the board
+                for(int num = 0; num < 8; num++) {
+                    for(int letter = 0; letter < 8; letter++) {
+                        Pos targetPos = new Pos(num, letter);
+
+                        // Check if this is a valid move for this piece
+                        if(checkPieceMovementSim(p, targetPos)) {
+                            // Simulate this move and see if it removes check
+                            if(kingSim(p, targetPos, k)) {
+                                // Found a move that gets out of check - not checkmate
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // No valid moves found that remove check - it's checkmate
+        System.out.println((k.color ? "White" : "Black") + " King checkmated!");
+        return true;
+    }
+
     /**
      * Find the king in the simulation via the king given
      * @param K the king to find
@@ -138,6 +170,8 @@ public class SimulationClass {
      * @return true = checked / false = not checked
      */
     private static boolean isKingCheckedSim(King k){
+        SimulationClass sc = new SimulationClass(k);
+
         //Get King position
         String kingPosStr = k.position.posToString();
 

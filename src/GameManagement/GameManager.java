@@ -15,6 +15,7 @@ public class GameManager {
     private static ArrayList<Piece> GameObjects = new ArrayList<>();
     public static String StockFishPath;
     private static boolean color; //ture = white | false = black
+    private static boolean whoWon;
 
     public GameManager() {
         this.StockFishPath = setStockFishPath();
@@ -75,19 +76,18 @@ public class GameManager {
     }
 
     public static boolean isGameOVer(){
-        if(King.findWhiteKing() == null || King.findBlackKing() == null){
+        if(SimulationClass.isCheckMate(King.findWhiteKing())){
+            whoWon = true;
             return true;
-        } else {
-            return false;
+        } else if(SimulationClass.isCheckMate(King.findBlackKing())) {
+            whoWon = false;
+            return true;
         }
+        return false;
     }
 
     public static void whoWon(){
-        if(King.findWhiteKing() == null){
-            System.out.println("Black won!");
-        } else if (King.findBlackKing() == null){
-            System.out.println("White won!");
-        }
+        System.out.println((whoWon ? "Black" : "White") + " won!");
     }
 
     private static FileInputStream openFileReader(String nomFichier) {

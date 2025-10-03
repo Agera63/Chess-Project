@@ -1,9 +1,6 @@
 package GameManagement;
 
-import Pieces.King;
-import Pieces.Pawn;
-import Pieces.Piece;
-import Pieces.Rook;
+import Pieces.*;
 
 public class PieceManagers {
     private static char[][] Board = new char[8][8];
@@ -68,16 +65,6 @@ public class PieceManagers {
                 break;
             }
         }
-
-        if(King.findWhiteKing() != null && King.findBlackKing() != null){
-            if(King.findWhiteKing().isChecked()){
-                System.out.println("White King is checked");
-            }
-            if(King.findBlackKing().isChecked()){
-                System.out.println("Black King is checked");
-            }
-        }
-
         drawBoard();
     }
 
@@ -97,7 +84,7 @@ public class PieceManagers {
                     if(Board[i][y] == '\u0000'){
                         System.out.print(PieceManagers.Boardcolors[i][y] + "\t");
                     } else {
-                        System.out.print(Board[i][y] + "\t");
+                        System.out.print(PieceIcon.transaltePieceIcon(Board[i][y]) + "\t");
                     }
                 }
                 System.out.println();
@@ -112,7 +99,7 @@ public class PieceManagers {
                     if(Board[i][y] == '\u0000'){
                         System.out.print(PieceManagers.Boardcolors[i][y] + "\t");
                     } else {
-                        System.out.print(Board[i][y] + "\t");
+                        System.out.print(PieceIcon.transaltePieceIcon(Board[i][y]) + "\t");
                     }
                 }
                 System.out.println();

@@ -4,8 +4,6 @@ import GameManagement.GameManager;
 import GameManagement.PieceManagers;
 import Position.Pos;
 
-import java.util.HashMap;
-
 public class King extends Piece{
 
     private boolean canCastle;
