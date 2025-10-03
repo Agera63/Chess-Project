@@ -1,4 +1,4 @@
-"D:\Engines\stockfish\stockfish-windows-x86-64.exe"
+""
 
 Steps to insert correct path :
 1. Place your Stockfish engine in a file (where ever you like).

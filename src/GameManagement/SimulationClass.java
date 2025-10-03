@@ -3,7 +3,6 @@ package GameManagement;
 import Pieces.*;
 import Position.Pos;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -15,14 +14,16 @@ public class SimulationClass {
     private static char[][] BoardCopy;
     private static ArrayList<Piece> GOCopy;
     private static King KingToMove;
+    private static Pos originalKingPos; // Track original position
 
     /**
-     * Basic contructor taking current board and objects in the game
+     * Basic constructor taking current board and objects in the game
      */
     private SimulationClass(King k) {
         BoardCopy = deepCopyBoard(PieceManagers.getBoard());
         GOCopy = deepCopyPieces();
         KingToMove = findKing(k);
+        originalKingPos = new Pos(k.position.num, k.position.letter); // Store original position
     }
 
     /**
@@ -35,8 +36,11 @@ public class SimulationClass {
         //recreate the char[] for movement
         char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
 
+        // Find the piece in the simulation that corresponds to pieceToMove
+        Piece simPiece = findPieceOfPosSim(pieceToMove.position);
+
         //Check if move is valid
-        if(checkPieceMovementSim(pieceToMove, finalPos)){
+        if(simPiece != null && checkPieceMovementSim(simPiece, finalPos)){
             UpdateSim(movementCharSim);
         }
 
@@ -55,8 +59,11 @@ public class SimulationClass {
         //recreate the char[] for movement
         char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
 
+        // Find the piece in the simulation
+        Piece simPiece = findPieceOfPosSim(pieceToMove.position);
+
         //Check if move is valid
-        if(checkPieceMovementSim(pieceToMove, finalPos)){
+        if(simPiece != null && checkPieceMovementSim(simPiece, finalPos)){
             UpdateSim(movementCharSim);
         }
 
@@ -71,7 +78,7 @@ public class SimulationClass {
      */
     private static King findKing(King K) {
         for (Piece p : GOCopy) {
-            if(p.position.letter == K.position.letter && p.position.num == K.position.num){
+            if(p.position.letter == K.position.letter && p.position.num == K.position.num && p instanceof King){
                 return (King) p;
             }
         }
@@ -98,12 +105,9 @@ public class SimulationClass {
             }
         }
         //checks for deactivated pieces
-        for (Piece p : GOCopy) {
-            if(!p.isActive){
-                GOCopy.remove(p);
-                /*DO NOT REMOVE BREAK!!!
-                If you remove the break, the array list would of been altered and then it will thrown an error */
-                break;
+        for (int i = GOCopy.size() - 1; i >= 0; i--) {
+            if(!GOCopy.get(i).isActive){
+                GOCopy.remove(i);
             }
         }
     }
@@ -114,48 +118,39 @@ public class SimulationClass {
      * @param PieceToMove the piece we need to move
      */
     private static void movementSim(String placeToMove, Piece PieceToMove) {
+        Pos targetPos = Pos.stringToPos(placeToMove);
 
-        if(!checkPosToMoveSim(PieceToMove, Pos.stringToPos(placeToMove), true)){
-            //if we are in this condition, it means that there is a piece of the opposit color that will be removed.
-            for(Piece p : GOCopy){
-                String PStringPosition = p.position.posToString();
-                if(placeToMove.equals(PStringPosition)){
-                    p.deactivate();
-                    BoardCopy[PieceToMove.position.num][PieceToMove.position.letter] = '\u0000';
-                    BoardCopy[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = PieceToMove.icon;
-                    PieceToMove.position = Pos.stringToPos(placeToMove);
-                    break;
-                }
-            }
-        } else {
-            BoardCopy[PieceToMove.position.num][PieceToMove.position.letter] = '\u0000';
-            BoardCopy[Pos.stringToPos(placeToMove).num][Pos.stringToPos(placeToMove).letter] = PieceToMove.icon;
-            PieceToMove.position = Pos.stringToPos(placeToMove);
+        // Check if there's a piece at the target position to capture
+        Piece targetPiece = findPieceOfPosSim(targetPos);
+        if(targetPiece != null && targetPiece.color != PieceToMove.color){
+            targetPiece.deactivate();
         }
+
+        // Update board and piece position
+        BoardCopy[PieceToMove.position.num][PieceToMove.position.letter] = '\u0000';
+        BoardCopy[targetPos.num][targetPos.letter] = PieceToMove.icon;
+        PieceToMove.position = targetPos;
     }
 
     /**
      * After the simulations, uses the resources in this class to check if the king is still checked
-     * @param k the king to verifiy if checked
+     * @param k the king to verify if checked
      * @return true = checked / false = not checked
      */
     private static boolean isKingCheckedSim(King k){
-        //Get King position (DONE)
+        //Get King position
         String kingPosStr = k.position.posToString();
 
-        //First for is number position, second for is letter position
+        //Check all positions on the board
         for(int number = 0; number < 8; number++){
             for(int letter = 0; letter < 8; letter++){
-                if(findPieceOfPosSim(new Pos(number, letter)) != null){
-                    char[] movementChart = ((new Pos(number, letter).posToString()) + "-" + kingPosStr).toCharArray();
+                Piece attackingPiece = findPieceOfPosSim(new Pos(number, letter));
 
-                    Pos finalPosition = Pos.stringToPos(String.valueOf(movementChart[3]) +
-                            String.valueOf(movementChart[4]).toLowerCase());
-                    Piece PieceToMove = findPieceOfPosSim(Pos.stringToPos(String.valueOf(movementChart[0]) +
-                            String.valueOf(movementChart[1]).toLowerCase()));
+                if(attackingPiece != null && attackingPiece.color != k.color){
+                    Pos kingPos = Pos.stringToPos(kingPosStr);
 
-                    //Check if valid move
-                    if(checkPieceMovementSim(PieceToMove, finalPosition) && k.color != PieceToMove.color){
+                    //Check if this enemy piece can attack the king
+                    if(checkPieceMovementSim(attackingPiece, kingPos)){
                         return true;
                     }
                 }
@@ -165,24 +160,24 @@ public class SimulationClass {
     }
 
     /**
-     * something is wrong here
      * Check, in the simulation, if there is a piece in the place to move depending on the condition.
      * @param p Piece that will move. Only used for its color property
      * @param posToMove The position that the piece (p) is trying to move to.
      * @param condition true checks if any piece is in that position
      *                  false checks if piece of different color is in the position
-     * @return true if no piece of same color in that slot / false if there is a piece in that position
+     * @return true if position is valid / false if blocked
      */
     private static boolean checkPosToMoveSim(Piece p, Pos posToMove, boolean condition){
         for(Piece tempPiece : GOCopy) {
-            if(condition) {
-                if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
+            if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
+                if(condition) {
+                    // Any piece blocks
                     return false;
-                }
-            } else {
-                if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter
-                        && p.color != tempPiece.color){
-                    return false;
+                } else {
+                    // Only different color blocks (for captures)
+                    if(p.color != tempPiece.color){
+                        return false;
+                    }
                 }
             }
         }
@@ -211,8 +206,8 @@ public class SimulationClass {
      */
     private static boolean checkPieceMovementSim(Piece PieceToMove, Pos finalPosition) {
         try{
-            //start
             String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
+
             if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
                 if(PieceToMove.color){
                     if(checkPosToMoveSim(PieceToMove, finalPosition, true) &&
@@ -237,7 +232,7 @@ public class SimulationClass {
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
                             && finalPosition.num - PieceToMove.position.num  > 0
                             && findPieceOfPosSim(finalPosition) != null){
-                        if(findPieceOfPosSim(finalPosition).color == !PieceToMove.color){
+                        if(findPieceOfPosSim(finalPosition).color != PieceToMove.color){
                             return true;
                         }
                     }
@@ -246,7 +241,7 @@ public class SimulationClass {
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
                             && PieceToMove.position.num - finalPosition.num > 0
                             && findPieceOfPosSim(finalPosition) != null){
-                        if(findPieceOfPosSim(finalPosition).color == !PieceToMove.color){
+                        if(findPieceOfPosSim(finalPosition).color != PieceToMove.color){
                             return true;
                         }
                     }
@@ -270,7 +265,7 @@ public class SimulationClass {
                     return true;
                 }
             } else if ((movementType.equals("vertical") || movementType.equals("horizontal") ||
-                    movementType.equals("diagonal") && PieceToMove instanceof King)) {
+                    movementType.equals("diagonal")) && PieceToMove instanceof King) {
                 //We first check if the king wants to castle with a rook
                 String strFinalPos = finalPosition.posToString();
                 if(movementType.equals("horizontal") && (strFinalPos.equals("g1") || strFinalPos.equals("c1") ||
@@ -279,7 +274,7 @@ public class SimulationClass {
                         Piece.initalizeCastleMap();
                     }
                     Rook r = (Rook) findPieceOfPosSim(Pos.stringToPos(Piece.getCastlingMap().get(strFinalPos)));
-                    if(PieceManagers.canCastle(r, (King) PieceToMove)){
+                    if(r != null && PieceManagers.canCastle(r, (King) PieceToMove)){
                         if(strFinalPos.equals("g1") &&
                                 !anyPieceBlockingSim(PieceToMove, Pos.stringToPos("g1"), movementType)){
                             return true;
@@ -307,13 +302,12 @@ public class SimulationClass {
                 }
             } else if (movementType.equals("knight") && PieceToMove instanceof Knight) {
                 //if something is there, check color then it can be valid
-                if(!checkPosToMoveSim(PieceToMove, finalPosition, false) &&
-                        findPieceOfPosSim(finalPosition) != null &&
-                        findPieceOfPosSim(finalPosition).color == !PieceToMove.color){
-                    return true;
-                }
-                //if something is not there, its valid
-                else if (checkPosToMoveSim(PieceToMove, finalPosition, true)){
+                Piece targetPiece = findPieceOfPosSim(finalPosition);
+                if(targetPiece != null){
+                    if(targetPiece.color != PieceToMove.color){
+                        return true;
+                    }
+                } else {
                     return true;
                 }
             } else if (movementType.equals("diagonal") && PieceToMove instanceof Bishop) {
@@ -325,7 +319,6 @@ public class SimulationClass {
                     return true;
                 }
             }
-            //end
             return false;
         } catch (Exception e) {
             return false;
@@ -341,84 +334,56 @@ public class SimulationClass {
     private static boolean anyPieceBlockingSim(Piece pm, Pos finalPos, String movementType){
         Piece pieceToMove = pm;
         int slotsToCheck = Pos.squaresMoved(movementType, pieceToMove.position, finalPos);
-        for(int i = 0; i <= slotsToCheck; i++){
+
+        for(int i = 1; i < slotsToCheck; i++){ // Start at 1 to skip starting position, end before final
             try {
                 if(movementType.equals("vertical")) {
-                    //checks if we are going to add or substract for the position
                     if(pieceToMove.position.num < finalPos.num){
                         if(BoardCopy[pieceToMove.position.num + i][pieceToMove.position.letter] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num + i, pieceToMove.position.letter).posToString()) &&
-                                    findPieceOfPosSim(new Pos(pieceToMove.position.num + i, pieceToMove.position.letter)).color == pieceToMove.color){
-                                return true;
-                            }
+                            return true;
                         }
                     } else {
                         if(BoardCopy[pieceToMove.position.num - i][pieceToMove.position.letter] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num - i, pieceToMove.position.letter).posToString()) &&
-                                    findPieceOfPosSim(new Pos(pieceToMove.position.num - i, pieceToMove.position.letter)).color == pieceToMove.color){
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 } else if (movementType.equals("horizontal")) {
                     if(pieceToMove.position.letter < finalPos.letter){
                         if(BoardCopy[pieceToMove.position.num][pieceToMove.position.letter + i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num, pieceToMove.position.letter + i).posToString()) &&
-                                    findPieceOfPosSim(new Pos(pieceToMove.position.num , pieceToMove.position.letter + i)).color == pieceToMove.color){
-                                return true;
-                            }
+                            return true;
                         }
                     } else {
                         if(BoardCopy[pieceToMove.position.num][pieceToMove.position.letter - i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num, pieceToMove.position.letter - i).posToString()) &&
-                                    findPieceOfPosSim(new Pos(pieceToMove.position.num, pieceToMove.position.letter - i)).color == pieceToMove.color){
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 } else if (movementType.equals("diagonal")) {
                     //Up right
                     if(pieceToMove.position.num < finalPos.num && pieceToMove.position.letter < finalPos.letter){
                         if(BoardCopy[pieceToMove.position.num + i][pieceToMove.position.letter + i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num + i, pieceToMove.position.letter + i).posToString())){
-                                if (findPieceOfPosSim(new Pos(pieceToMove.position.num + i, pieceToMove.position.letter + i)).color == pieceToMove.color) {
-                                    return true;
-                                }
-                            }
+                            return true;
                         }
-                        //Down Right
-                    } else if(pieceToMove.position.num > finalPos.num && pieceToMove.position.letter < finalPos.letter){
+                    }
+                    //Down Right
+                    else if(pieceToMove.position.num > finalPos.num && pieceToMove.position.letter < finalPos.letter){
                         if(BoardCopy[pieceToMove.position.num - i][pieceToMove.position.letter + i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num - i, pieceToMove.position.letter + i).posToString())){
-                                if (findPieceOfPosSim(new Pos(pieceToMove.position.num - i, pieceToMove.position.letter + i)).color == pieceToMove.color) {
-                                    return true;
-                                }
-                            }
+                            return true;
                         }
-                        //Up Left
-                    } else if(pieceToMove.position.num < finalPos.num && pieceToMove.position.letter > finalPos.letter) {
+                    }
+                    //Up Left
+                    else if(pieceToMove.position.num < finalPos.num && pieceToMove.position.letter > finalPos.letter) {
                         if(BoardCopy[pieceToMove.position.num + i][pieceToMove.position.letter - i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num + i, pieceToMove.position.letter - i).posToString())){
-                                if (findPieceOfPosSim(new Pos(pieceToMove.position.num + i, pieceToMove.position.letter - i)).color == pieceToMove.color) {
-                                    return true;
-                                }
-                            }
+                            return true;
                         }
-                        //Down Left
-                    } else if (pieceToMove.position.num > finalPos.num && pieceToMove.position.letter > finalPos.letter) {
+                    }
+                    //Down Left
+                    else if (pieceToMove.position.num > finalPos.num && pieceToMove.position.letter > finalPos.letter) {
                         if(BoardCopy[pieceToMove.position.num - i][pieceToMove.position.letter - i] != '\u0000'){
-                            if(finalPos.posToString().equals(new Pos(pieceToMove.position.num - i, pieceToMove.position.letter - i).posToString())){
-                                if (findPieceOfPosSim(new Pos(pieceToMove.position.num - i, pieceToMove.position.letter - i)).color == pieceToMove.color) {
-                                    return true;
-                                }
-                            } else {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
             } catch (Exception e) {
-                //If any exception is caught, we think the move is invalid (to look into)
                 return true;
             }
         }
@@ -433,7 +398,7 @@ public class SimulationClass {
     private static char[][] deepCopyBoard(char[][] original) {
         char[][] copy = new char[original.length][];
         for (int i = 0; i < original.length; i++) {
-            copy[i] = original[i].clone(); // Clone each row
+            copy[i] = original[i].clone();
         }
         return copy;
     }
