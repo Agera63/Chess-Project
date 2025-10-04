@@ -55,7 +55,6 @@ public class Main {
 
         //Creates all the pieces of the game.
         Piece.boardCreation();
-        System.out.println("Capital letters are white, lowercase letters are black.");
 
         //Allows Stockfish to make his first move.
         if(GameManager.getColor()){
