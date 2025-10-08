@@ -26,7 +26,7 @@ public class PieceManagers {
      * Fills the basic colors of a chess baord
      * @return char[][] with the colors only
      */
-    public static char[][] fillColorBoard() {
+    private static char[][] fillColorBoard() {
         return new char[][]{{'▒','█','▒','█','▒','█','▒','█'},
                             {'█','▒','█','▒','█','▒','█','▒'},
                             {'▒','█','▒','█','▒','█','▒','█'},
@@ -79,7 +79,6 @@ public class PieceManagers {
             System.out.println("\tA\tB\tC\tD\tE\tF\tG\tH");
             for (int i = Board[0].length - 1; i >= 0; i--) {
                 System.out.print(temp + "\t");
-                temp--;
                 for (int y = 0; y < Board[0].length; y++) {
                     if(Board[i][y] == '\u0000'){
                         System.out.print(PieceManagers.Boardcolors[i][y] + "\t");
@@ -87,14 +86,17 @@ public class PieceManagers {
                         System.out.print(PieceIcon.transaltePieceIcon(Board[i][y]) + "\t");
                     }
                 }
+                System.out.print(temp + "\t");
+                temp--;
+
                 System.out.println();
             }
+            System.out.println("\tA\tB\tC\tD\tE\tF\tG\tH");
         } else {
             temp = 1;
             System.out.println("\tA\tB\tC\tD\tE\tF\tG\tH");
             for (int i = 0; i < Board.length; i++) {
                 System.out.print(temp + "\t");
-                temp++;
                 for (int y = 0; y < Board.length; y++) {
                     if(Board[i][y] == '\u0000'){
                         System.out.print(PieceManagers.Boardcolors[i][y] + "\t");
@@ -102,8 +104,12 @@ public class PieceManagers {
                         System.out.print(PieceIcon.transaltePieceIcon(Board[i][y]) + "\t");
                     }
                 }
+                System.out.print(temp + "\t");
+                temp++;
+
                 System.out.println();
             }
+            System.out.println("\tA\tB\tC\tD\tE\tF\tG\tH");
         }
     }
 

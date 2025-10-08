@@ -90,6 +90,7 @@ public class SimulationClass {
                             // Simulate this move and see if it removes check
                             if(kingSim(p, targetPos, k)) {
                                 // Found a move that gets out of check - not checkmate
+                                //check if that move will put him will leave him is check, then return (bug)
                                 return false;
                             }
                         }
@@ -130,7 +131,7 @@ public class SimulationClass {
                 movementSim(PositionToMove.toLowerCase(), p);
                 if(MovementChar.length == 6 && p instanceof Pawn){
                     if((p.position.num == 0 && !GameManager.getColor()) || (p.position.num == 7 && GameManager.getColor())){
-                        ((Pawn) p).promotion(MovementChar[5]);
+                        ((Pawn) p).promotion(MovementChar[5]); //this will create a bug
                     }
                 }
                 break;
@@ -170,7 +171,9 @@ public class SimulationClass {
      * @return true = checked / false = not checked
      */
     private static boolean isKingCheckedSim(King k){
-        SimulationClass sc = new SimulationClass(k);
+        if(BoardCopy == null && GOCopy == null){
+            SimulationClass sc = new SimulationClass(k);
+        }
 
         //Get King position
         String kingPosStr = k.position.posToString();
