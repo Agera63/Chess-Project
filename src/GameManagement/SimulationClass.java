@@ -71,27 +71,33 @@ public class SimulationClass {
         return !isKingCheckedSim(sc.KingToMove);
     }
 
-    protected static boolean isCheckMate(King k){
+    protected static boolean isCheckMate(King k) {
         // First, verify the king is actually in check
-        if(!isKingCheckedSim(k)) {
+        SimulationClass currentSim = new SimulationClass(k);
+        if(!isKingCheckedSim(currentSim.KingToMove)) {
             return false; // Can't be checkmate if not in check
         }
 
         // Try all possible moves for all pieces of the king's color
-        for(Piece p : GOCopy) {
-            if(p.color == k.color) {
+        for(Piece p : GameManager.getGameObjects()) {
+            if(p.color == k.color && p.isActive) {
                 // Try moving this piece to every square on the board
                 for(int num = 0; num < 8; num++) {
                     for(int letter = 0; letter < 8; letter++) {
                         Pos targetPos = new Pos(num, letter);
 
-                        // Check if this is a valid move for this piece
-                        if(checkPieceMovementSim(p, targetPos)) {
-                            // Simulate this move and see if it removes check
-                            if(kingSim(p, targetPos, k)) {
-                                // Found a move that gets out of check - not checkmate
-                                //check if that move will put him will leave him is check, then return (bug)
-                                return false;
+                        // Create a fresh simulation for this specific move
+                        SimulationClass testSim = new SimulationClass(k);
+                        Piece simPiece = testSim.findPieceOfPosSim(p.position);
+
+                        if(simPiece != null && testSim.checkPieceMovementSim(simPiece, targetPos)) {
+                            // Simulate the move
+                            char[] moveChar = (p.position.posToString() + "-" + targetPos.posToString()).toCharArray();
+                            testSim.UpdateSim(moveChar);
+
+                            // Check if king is still in check after this move
+                            if(!testSim.isKingCheckedSim(testSim.KingToMove)) {
+                                return false; // Found a move that escapes check
                             }
                         }
                     }
@@ -99,9 +105,7 @@ public class SimulationClass {
             }
         }
 
-        // No valid moves found that remove check - it's checkmate
-        System.out.println((k.color ? "White" : "Black") + " King checkmated!");
-        return true;
+        return true; // No moves escape check - checkmate
     }
 
     /**
