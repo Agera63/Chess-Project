@@ -40,8 +40,8 @@ public class King extends Piece{
         char[][] temporaryBoard = PieceManagers.getBoard();
 
         //Checks if we want to caslte the king
-        if(placeToMove.equals("g1") || placeToMove.equals("c1") ||
-                placeToMove.equals("g8") || placeToMove.equals("c8")) {
+        if((placeToMove.equals("g1") || placeToMove.equals("c1") ||
+                placeToMove.equals("g8") || placeToMove.equals("c8")) && this.isChecked()) {
             Rook r = (Rook) Piece.findPieceOfPos(Pos.stringToPos(Piece.getCastlingMap().get(placeToMove)));
             if(PieceManagers.canCastle(r, this)){
                 temporaryBoard[this.position.num][this.position.letter] = '\u0000';
