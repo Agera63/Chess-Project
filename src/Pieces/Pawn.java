@@ -111,4 +111,18 @@ public class Pawn extends Piece{
             return new Pos(6, blackPos++);
         }
     }
+
+    /**
+     * Simulates the pawn promotion for simulation class
+     * @param pieceToPromote The first letter of the piece that the pawn will become.
+     */
+    public Piece promotionSimulation(char pieceToPromote){
+        switch (pieceToPromote){
+            case 'q' : return new Queen(this.color, this.position);
+            case 'b' : return new Bishop(this.color, this.position);
+            case 'n' : return new Knight(this.color, this.position);
+            case 'r' : return new Rook(this.color, this.position);
+            default : return null;
+        }
+    }
 }

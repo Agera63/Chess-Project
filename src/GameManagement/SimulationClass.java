@@ -4,6 +4,7 @@ import Pieces.*;
 import Position.Pos;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * This class is only used to simulate a move. The main usage of this class is to check if the
@@ -37,15 +38,22 @@ public class SimulationClass {
         char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
 
         // Find the piece in the simulation that corresponds to pieceToMove
-        Piece simPiece = findPieceOfPosSim(pieceToMove.position);
+        Piece simPiece = sc.findPieceOfPosSim(pieceToMove.position);
 
         //Check if move is valid
-        if(simPiece != null && checkPieceMovementSim(simPiece, finalPos)){
-            UpdateSim(movementCharSim);
+        if(simPiece != null && sc.checkPieceMovementSim(simPiece, finalPos)){
+            // Check if this is a castling move
+            if(simPiece instanceof King && ((King) simPiece).getCanCastle()){
+                if(canCastleSafely(k, finalPos)){
+                    sc.UpdateSim(movementCharSim);
+                }
+            } else {
+                sc.UpdateSim(movementCharSim);
+            }
         }
 
         //Final check to see if the move can be done while removing the check
-        return !isKingCheckedSim(sc.KingToMove);
+        return !sc.isKingCheckedSim(sc.KingToMove);
     }
 
     /**
@@ -60,21 +68,77 @@ public class SimulationClass {
         char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
 
         // Find the piece in the simulation
-        Piece simPiece = findPieceOfPosSim(pieceToMove.position);
+        Piece simPiece = sc.findPieceOfPosSim(pieceToMove.position);
 
         //Check if move is valid
-        if(simPiece != null && checkPieceMovementSim(simPiece, finalPos)){
-            UpdateSim(movementCharSim);
+        if(simPiece != null && sc.checkPieceMovementSim(simPiece, finalPos)){
+            sc.UpdateSim(movementCharSim);
         }
 
         //Checks if the move made will check the king.
-        return !isKingCheckedSim(sc.KingToMove);
+        return !sc.isKingCheckedSim(sc.KingToMove);
+    }
+
+    /**
+     * Checks if castling will result in the king being in check
+     * @param king The king attempting to castle
+     * @param targetPos The target position for castling (g1, c1, g8, or c8)
+     * @return true if the castle is safe (king not in check) / false if king would be in check
+     */
+    public static boolean canCastleSafely(King king, Pos targetPos) {
+        // Create a simulation
+        SimulationClass sim = new SimulationClass(king);
+
+        // Get the simulated king
+        Piece simKing = sim.findPieceOfPosSim(king.position);
+
+        if(!(simKing instanceof King)) {
+            return false;
+        }
+
+        String targetStr = targetPos.posToString();
+        Rook simRook = null;
+        Pos rookTargetPos = null;
+
+        // Determine which rook to castle with and where it goes
+        if(targetStr.equals("g1")) {
+            // Kingside castle white
+            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("h1"));
+            rookTargetPos = Pos.stringToPos("f1");
+        } else if(targetStr.equals("c1")) {
+            // Queenside castle white
+            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("a1"));
+            rookTargetPos = Pos.stringToPos("d1");
+        } else if(targetStr.equals("g8")) {
+            // Kingside castle black
+            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("h8"));
+            rookTargetPos = Pos.stringToPos("f8");
+        } else if(targetStr.equals("c8")) {
+            // Queenside castle black
+            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("a8"));
+            rookTargetPos = Pos.stringToPos("d8");
+        }
+
+        if(simRook == null || rookTargetPos == null) {
+            return false;
+        }
+
+        // Move the king
+        sim.movementSim(targetPos, (King) simKing);
+
+        // Move the rook
+        sim.movementSim(rookTargetPos, simRook);
+
+        // Check if king is in check after castling
+        return !sim.isKingCheckedSim((King) simKing);
     }
 
     protected static boolean isCheckMate(King k) {
+        // Create a fresh simulation to check the initial state
+        SimulationClass checkSim = new SimulationClass(k);
+
         // First, verify the king is actually in check
-        SimulationClass currentSim = new SimulationClass(k);
-        if(!isKingCheckedSim(currentSim.KingToMove)) {
+        if(!checkSim.isKingCheckedSim(checkSim.KingToMove)) {
             return false; // Can't be checkmate if not in check
         }
 
@@ -86,7 +150,7 @@ public class SimulationClass {
                     for(int letter = 0; letter < 8; letter++) {
                         Pos targetPos = new Pos(num, letter);
 
-                        // Create a fresh simulation for this specific move
+                        // Create a fresh simulation for each move test
                         SimulationClass testSim = new SimulationClass(k);
                         Piece simPiece = testSim.findPieceOfPosSim(p.position);
 
@@ -126,16 +190,34 @@ public class SimulationClass {
      * Simulates an update like in the "Main"
      * @param MovementChar recreation of the movementChar
      */
-    private static void UpdateSim(char[] MovementChar){
+    private void UpdateSim(char[] MovementChar){
         String PieceToMove = String.valueOf(MovementChar[0]) + String.valueOf(MovementChar[1]).toLowerCase();
         String PositionToMove = String.valueOf(MovementChar[3]) + String.valueOf(MovementChar[4]).toLowerCase();
 
         for (Piece p : GOCopy){
             if(p.position.posToString().equals(PieceToMove.toLowerCase())){
-                movementSim(PositionToMove.toLowerCase(), p);
+                movementSim(Pos.stringToPos(PositionToMove.toLowerCase()), p);
                 if(MovementChar.length == 6 && p instanceof Pawn){
                     if((p.position.num == 0 && !GameManager.getColor()) || (p.position.num == 7 && GameManager.getColor())){
-                        ((Pawn) p).promotion(MovementChar[5]); //this will create a bug
+                        boolean temp = true;
+                        do {
+                            Scanner sc = new Scanner(System.in);
+                            switch (MovementChar[5]) {
+                                case 'n' : Knight n = new Knight ((Knight) ((Pawn) p).promotionSimulation(MovementChar[5]));
+                                    temp = false; GOCopy.add(n); break;
+                                case 'q' : Queen q = new Queen ((Queen) ((Pawn) p).promotionSimulation(MovementChar[5]));
+                                    temp = false; GOCopy.add(q); break;
+                                case 'r' : Rook r = new Rook((Rook) ((Pawn) p).promotionSimulation(MovementChar[5]));
+                                    temp = false; GOCopy.add(r); break;
+                                case 'b' : Bishop b = new Bishop((Bishop) ((Pawn) p).promotionSimulation(MovementChar[5]));
+                                    temp = false; GOCopy.add(b); break;
+                                default:
+                                    System.out.println("Select what the Pawn will promote to by entering the letter in the [] : " +
+                                            "\n [Q]ueen, [B]ishop, K[n]ight, [R]ook");
+                                    MovementChar[5] = sc.nextLine().toLowerCase().charAt(0);
+                            }
+                        } while (temp);
+                        p.deactivate();
                     }
                 }
                 break;
@@ -151,12 +233,10 @@ public class SimulationClass {
 
     /**
      * Simulates a movement with the tools in this class
-     * @param placeToMove location to move the piece and simulate
+     * @param targetPos location to move the piece and simulate
      * @param PieceToMove the piece we need to move
      */
-    private static void movementSim(String placeToMove, Piece PieceToMove) {
-        Pos targetPos = Pos.stringToPos(placeToMove);
-
+    private void movementSim(Pos targetPos, Piece PieceToMove) {
         // Check if there's a piece at the target position to capture
         Piece targetPiece = findPieceOfPosSim(targetPos);
         if(targetPiece != null && targetPiece.color != PieceToMove.color){
@@ -174,7 +254,7 @@ public class SimulationClass {
      * @param k the king to verify if checked
      * @return true = checked / false = not checked
      */
-    private static boolean isKingCheckedSim(King k){
+    private boolean isKingCheckedSim(King k){
         if(BoardCopy == null && GOCopy == null){
             SimulationClass sc = new SimulationClass(k);
         }
@@ -208,7 +288,7 @@ public class SimulationClass {
      *                  false checks if piece of different color is in the position
      * @return true if position is valid / false if blocked
      */
-    private static boolean checkPosToMoveSim(Piece p, Pos posToMove, boolean condition){
+    private boolean checkPosToMoveSim(Piece p, Pos posToMove, boolean condition){
         for(Piece tempPiece : GOCopy) {
             if(posToMove.num == tempPiece.position.num && posToMove.letter == tempPiece.position.letter){
                 if(condition) {
@@ -230,7 +310,7 @@ public class SimulationClass {
      * @param position position of the piece to find
      * @return the piece at that position
      */
-    private static Piece findPieceOfPosSim(Pos position){
+    private Piece findPieceOfPosSim(Pos position){
         for(Piece p : GOCopy){
             if(position.num == p.position.num && position.letter == p.position.letter){
                 return p;
@@ -245,7 +325,7 @@ public class SimulationClass {
      * @param finalPosition position the piece will go to
      * @return true if move is legal / false if move is illegal
      */
-    private static boolean checkPieceMovementSim(Piece PieceToMove, Pos finalPosition) {
+    private boolean checkPieceMovementSim(Piece PieceToMove, Pos finalPosition) {
         try{
             String movementType = Pos.checkMovementDirection(PieceToMove.position, finalPosition);
 
@@ -372,7 +452,7 @@ public class SimulationClass {
      * @param movementType the type of movement that will be made
      * @return true if something is blocking the move / false if nothing is blocking the move
      */
-    private static boolean anyPieceBlockingSim(Piece pm, Pos finalPos, String movementType){
+    private boolean anyPieceBlockingSim(Piece pm, Pos finalPos, String movementType){
         Piece pieceToMove = pm;
         int slotsToCheck = Pos.squaresMoved(movementType, pieceToMove.position, finalPos);
 

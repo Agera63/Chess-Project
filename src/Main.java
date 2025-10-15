@@ -4,7 +4,6 @@ import GameManagement.PieceManagers;
 import Pieces.Piece;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -14,19 +13,11 @@ public class Main {
 
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : check if the color is different
-    * ask ChatGPT about special interactions with Stockfish
-    * When your done with checking if queen in check, fix rule where you can't castle while in check AND can not castle
-    * into a check
+    * CURRENTLY WORKING ON : can not castle into check
     *
     * PIECE COMPLETION :
     * PAWN (ALMOST DONE) en passant
-    * BISHOP (DONE)
-    * ROOK (DONE)
-    * KNIGHT (DONE)
-    * KING (DONE)
-    * QUEEN (DONE)
-    * */
+    */
 
     //Changes the amount of seconds between
     final private static int timeBetweenMoves = 1;
@@ -56,7 +47,7 @@ public class Main {
         //Creates all the pieces of the game.
         Piece.boardCreation();
 
-        //Allows Stockfish to make his first move.
+        //Allows Stockfish to make his first move if its white.
         if(GameManager.getColor()){
             PieceManagers.drawBoard();
         }
@@ -90,10 +81,8 @@ public class Main {
             PieceManagers.Update(PieceToMove);
             System.out.println("----------------------------------");
 
-
             //Lest the user see the board and think out his next move;
             pause(timeBetweenMoves);
-
 
             //Makes sure the turn changes and the next person can play
             turn = !turn;
