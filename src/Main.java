@@ -13,10 +13,8 @@ public class Main {
 
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : can not castle into check
-    *
-    * PIECE COMPLETION :
-    * PAWN (ALMOST DONE) en passant
+    * CURRENTLY WORKING ON : move history to be saved 
+    * giving code to testers to test + optimize classes with AI
     */
 
     //Changes the amount of seconds between

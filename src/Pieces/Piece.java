@@ -280,37 +280,76 @@ public abstract class Piece {
             if(movementType.equals("vertical") && PieceToMove instanceof Pawn){
                 if(PieceToMove.color){
                     if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                    (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
-                                            PieceToMove.position.num == 1)) &&
+                            (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1) &&
                             finalPosition.num - PieceToMove.position.num  > 0){
+                        ((Pawn) PieceToMove).moves2Squares = false;
+                        return true;
+                    } else if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            ((Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
+                                    PieceToMove.position.num == 1)) &&
+                            finalPosition.num - PieceToMove.position.num  > 0) {
+                        ((Pawn) PieceToMove).moves2Squares = true;
                         return true;
                     }
                 } else {
                     if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
-                            (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1 ||
-                                    (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
-                                            PieceToMove.position.num == 6)) &&
+                            (Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1) &&
                             PieceToMove.position.num - finalPosition.num > 0) {
+                        ((Pawn) PieceToMove).moves2Squares = false;
+                        return true;
+                    } else if (PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            ((Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 2 &&
+                                    PieceToMove.position.num == 6)) &&
+                            PieceToMove.position.num - finalPosition.num > 0) {
+                        ((Pawn) PieceToMove).moves2Squares = true;
                         return true;
                     }
                 }
             } else if (movementType.equals("diagonal") && PieceToMove instanceof Pawn) {
                 if(PieceToMove.color){
+                    //white capture
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
                             && finalPosition.num - PieceToMove.position.num  > 0
                             && findPieceOfPos(finalPosition) != null){
                         if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                            ((Pawn) PieceToMove).moves2Squares = false;
                             return true;
                         }
                     }
+                    //white en passant
+                    else if(PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                            && finalPosition.num - PieceToMove.position.num  > 0
+                            && findPieceOfPos(finalPosition) == null){
+                        Piece temppiece = findPieceOfPos(new Pos(finalPosition.num - 1 , finalPosition.letter));
+                        if(temppiece.color != PieceToMove.color && temppiece instanceof Pawn &&
+                                ((Pawn) temppiece).moves2Squares && temppiece.position.num == 4){
+                            ((Pawn) temppiece).moves2Squares = false;
+                            return true;
+                        }
+                    }
+
                 } else {
+                    //black capture
                     if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, false) &&
                             Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
                             && PieceToMove.position.num - finalPosition.num > 0
                             && findPieceOfPos(finalPosition) != null){
                         if(findPieceOfPos(finalPosition).color == !PieceToMove.color){
+                            ((Pawn) PieceToMove).moves2Squares = false;
+                            return true;
+                        }
+                    }
+                    //black en passant
+                    else if(!PieceToMove.checkPosToMove(PieceToMove, finalPosition, true) &&
+                            Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1
+                            && PieceToMove.position.num - finalPosition.num > 0
+                            && findPieceOfPos(finalPosition) == null){
+                        Piece temppiece = findPieceOfPos(new Pos(finalPosition.num - 1 , finalPosition.letter));
+                        if(temppiece.color != PieceToMove.color && temppiece instanceof Pawn &&
+                                ((Pawn) temppiece).moves2Squares && temppiece.position.num == 3){
+                            ((Pawn) temppiece).moves2Squares = false;
                             return true;
                         }
                     }

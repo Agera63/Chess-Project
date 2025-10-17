@@ -9,7 +9,7 @@ import java.util.Scanner;
 public class Pawn extends Piece{
     private static int whitePos = 0;
     private static int blackPos = 0;
-
+    public boolean moves2Squares = false;
     /**
      * Creates a Pieces.Pawn depending on the piece color.
      * @param color Color of the piece. (true = black / false = white)
