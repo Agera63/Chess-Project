@@ -1,9 +1,11 @@
 import ChessClient.Code.StockFishChessClient;
 import GameManagement.GameManager;
+import GameManagement.HistoryHelper;
 import GameManagement.PieceManagers;
 import Pieces.Piece;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -13,8 +15,7 @@ public class Main {
 
 
     /* TO DO LIST IN ORDER:
-    * CURRENTLY WORKING ON : move history to be saved 
-    * giving code to testers to test + optimize classes with AI
+    * CURRENTLY WORKING ON : giving code to testers to test + optimize classes with AI
     */
 
     //Changes the amount of seconds between
@@ -23,6 +24,7 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         GameManager GM = new GameManager();
+        HistoryHelper HH = new HistoryHelper("MoveHistory.txt");
 
         //Picks color of the player.
         System.out.println("What color would you like to be? \n[W]hite, [B]lack, [R]andom?");
@@ -79,6 +81,10 @@ public class Main {
             PieceManagers.Update(PieceToMove);
             System.out.println("----------------------------------");
 
+            //Adds the move in the history file
+            if(GameManager.isUserTurn(turn)) {
+                HH.addMove(PieceToMove);
+            }
             //Lest the user see the board and think out his next move;
             pause(timeBetweenMoves);
 
@@ -86,6 +92,7 @@ public class Main {
             turn = !turn;
             winCondition = GameManager.isGameOVer();
         }while(!winCondition);
+        HH.closeFile();
         GameManager.whoWon();
     }
 
