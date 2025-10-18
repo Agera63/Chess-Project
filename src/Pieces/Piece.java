@@ -5,7 +5,6 @@ import GameManagement.PieceManagers;
 import GameManagement.SimulationClass;
 import Position.Pos;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class Piece {
@@ -125,10 +124,12 @@ public abstract class Piece {
         King whiteKing = King.findWhiteKing();
         King blackKing = King.findBlackKing();
 
+        boolean kingChecked = GameManager.getColor() ? whiteKing.isChecked() : blackKing.isChecked();
+
         try{
             if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
                 return false;
-            } else if((whiteKing.isChecked() || blackKing.isChecked()) && (whiteKing != null && blackKing != null)) {
+            } else if(kingChecked && (whiteKing != null && blackKing != null)) {
                 King k = whiteKing.isChecked() ? whiteKing : blackKing;
                 return SimulationClass.kingSim(PieceToMove, finalPosition, k);
             } else {

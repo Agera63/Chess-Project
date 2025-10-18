@@ -3,10 +3,7 @@ package GameManagement;
 import Pieces.King;
 import Pieces.Piece;
 
-import java.io.Closeable;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -60,20 +57,51 @@ public class GameManager {
      * Reads the "StockFishPath.txt" file to get the StockFish path
      */
     private static String setStockFishPath() {
-        FileInputStream fichier = openFileReader("StockFishPath.txt");
-        Scanner lecteurFichier = new Scanner(fichier);
+        Scanner lecteurFichier = null;
         StringBuilder stockFishPath = new StringBuilder();
 
-        char[] ligne = lecteurFichier.nextLine().toCharArray();
-        for (char c: ligne) {
-            if(c != '"'){
-                stockFishPath.append(c);
+        try {
+            // Try to load the file from the same directory as the JAR
+            File file = new File("StockFishPath.txt");
+            InputStream input;
+
+            if (file.exists()) {
+                // File found next to the JAR
+                input = new FileInputStream(file);
+            } else {
+                // Try to load it from resources inside the JAR
+                input = GameManager.class.getResourceAsStream("/StockFishPath.txt");
+                if (input == null) {
+                    throw new FileNotFoundException("StockFishPath.txt not found (neither external nor in resources).");
+                }
+            }
+
+            lecteurFichier = new Scanner(new InputStreamReader(input));
+
+            if (lecteurFichier.hasNextLine()) {
+                char[] ligne = lecteurFichier.nextLine().toCharArray();
+                for (char c : ligne) {
+                    if (c != '"') {
+                        stockFishPath.append(c);
+                    }
+                }
+            } else {
+                throw new IOException("StockFishPath.txt is empty.");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error reading StockFishPath.txt: " + e.getMessage());
+            e.printStackTrace();
+            return null; // You could return a default path here if you want
+        } finally {
+            if (lecteurFichier != null) {
+                lecteurFichier.close();
             }
         }
 
-        closeFile(fichier);
         return stockFishPath.toString();
     }
+
 
     public static boolean isGameOVer(){
         if(SimulationClass.isCheckMate(King.findWhiteKing())){
