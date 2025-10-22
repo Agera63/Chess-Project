@@ -43,10 +43,12 @@ public class SimulationClass {
         //Check if move is valid
         if(simPiece != null && sc.checkPieceMovementSim(simPiece, finalPos)){
             // Check if this is a castling move
-            if(simPiece instanceof King && ((King) simPiece).getCanCastle()){
-                if(canCastleSafely(k, finalPos)){
-                    sc.UpdateSim(movementCharSim);
-                }
+            if(simPiece instanceof King && ((King) simPiece).getCanCastle() && simPiece.color
+                && (finalPos.posToString().equals("g1")) || finalPos.posToString().equals("c1") && canCastleSafely(k, finalPos)) {
+                sc.UpdateSim(movementCharSim);
+            } else if (simPiece instanceof King && ((King) simPiece).getCanCastle() && !simPiece.color
+                    && (finalPos.posToString().equals("g8")) || finalPos.posToString().equals("c8") && canCastleSafely(k, finalPos)) {
+                sc.UpdateSim(movementCharSim);
             } else {
                 sc.UpdateSim(movementCharSim);
             }
