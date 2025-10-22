@@ -49,7 +49,7 @@ public class Main {
 
         //Allows Stockfish to make his first move if its white.
         if(GameManager.getColor()){
-            PieceManagers.drawBoard();
+            PieceManagers.drawBoardWithIcons();
         }
 
         boolean winCondition = false; //While false, the game will not end. Once true, game is over.

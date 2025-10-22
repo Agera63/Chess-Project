@@ -113,48 +113,6 @@ public class PieceManagers {
         }
     }
 
-    public static void drawBoard(){
-        //Draws the board once the move has been updated.
-        int temp; //prints the number on the side of the chess board
-        if(GameManager.getColor()) {
-            temp = 8;
-            System.out.println("   A  B  C  D  E  F  G  H");
-            for (int i = Board[0].length - 1; i >= 0; i--) {
-                System.out.print(temp + "  ");
-                for (int y = 0; y < Board[0].length; y++) {
-                    if(Board[i][y] == '\u0000'){
-                        System.out.print(PieceManagers.Boardcolors[i][y] + "  ");
-                    } else {
-                        System.out.print(Board[i][y] + "  ");
-                    }
-                }
-                System.out.print(temp + "  ");
-                temp--;
-
-                System.out.println();
-            }
-            System.out.println("   A  B  C  D  E  F  G  H");
-        } else {
-            temp = 1;
-            System.out.println("   A  B  C  D  E  F  G  H");
-            for (int i = 0; i < Board.length; i++) {
-                System.out.print(temp + "  ");
-                for (int y = 0; y < Board.length; y++) {
-                    if(Board[i][y] == '\u0000'){
-                        System.out.print(PieceManagers.Boardcolors[i][y] + "  ");
-                    } else {
-                        System.out.print(Board[i][y] + "  ");
-                    }
-                }
-                System.out.print(temp + "  ");
-                temp++;
-
-                System.out.println();
-            }
-            System.out.println("   A  B  C  D  E  F  G  H");
-        }
-    }
-
     /**
      * Checking to see if we can castle the rook and the king
      * @param r The rook we are checking
