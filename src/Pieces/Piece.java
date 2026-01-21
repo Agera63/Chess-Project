@@ -7,6 +7,9 @@ import Position.Pos;
 
 import java.util.HashMap;
 
+/**
+ * Parts of this class have been modified and simplified by AI
+ */
 public abstract class Piece {
 
     public String name;
@@ -45,18 +48,18 @@ public abstract class Piece {
      */
     public static void boardCreation(){
         boolean temp = true;
-            for(int j = 0; j < 2; j++) {
-                King K = new King(temp);
-                Queen q = new Queen(temp);
-                for(int i = 0; i < 2; i++){
-                    Bishop b = new Bishop(temp);
-                    Knight k = new Knight(temp);
-                    Rook r = new Rook(temp);
-                }
-                for(int i = 0; i < 8; i++){
-                    Pawn p = new Pawn(temp);
-                }
-                temp = false;
+        for(int j = 0; j < 2; j++) {
+            King K = new King(temp);
+            Queen q = new Queen(temp);
+            for(int i = 0; i < 2; i++){
+                Bishop b = new Bishop(temp);
+                Knight k = new Knight(temp);
+                Rook r = new Rook(temp);
+            }
+            for(int i = 0; i < 8; i++){
+                Pawn p = new Pawn(temp);
+            }
+            temp = false;
         }
         drawPieces();
     }
@@ -112,6 +115,7 @@ public abstract class Piece {
 
     /**
      * Checks if the move the user is trying to do is valid (checks for checks too)
+     * This is the TOP-LEVEL validation used during actual gameplay
      * @return true if valid / false if not valid
      */
     public static boolean validMove(char[] MovementChar){
@@ -124,24 +128,53 @@ public abstract class Piece {
         King whiteKing = King.findWhiteKing();
         King blackKing = King.findBlackKing();
 
-        boolean kingChecked = GameManager.getColor() ? whiteKing.isChecked() : blackKing.isChecked();
-
         try{
             if(PieceToMove == null || PieceToMove.color != GameManager.getColor()) {
                 return false;
-            } else if(kingChecked && (whiteKing != null && blackKing != null)) {
-                King k = whiteKing.isChecked() ? whiteKing : blackKing;
-                return SimulationClass.kingSim(PieceToMove, finalPosition, k);
-            } else {
-                if(PieceToMove instanceof King) {
-                    return checkPieceMovement(PieceToMove, finalPosition) &&
-                            SimulationClass.willMoveCheckKing(PieceToMove, finalPosition);
-                } else {
-                    return checkPieceMovement(PieceToMove, finalPosition);
-                }
             }
+
+            // Use the unified validation method
+            return isValidMoveWithCheckValidation(PieceToMove, finalPosition);
         } catch (Exception e){
             return false;
+        }
+    }
+
+    /**
+     * NEW: Unified method to check if a move is valid AND doesn't leave king in check
+     * This is used by both gameplay and checkmate detection
+     * @param pieceToMove The piece to move
+     * @param finalPosition The target position
+     * @return true if move is legal and doesn't leave king in check
+     */
+    public static boolean isValidMoveWithCheckValidation(Piece pieceToMove, Pos finalPosition) {
+        // First check if the basic move is legal
+        if(!checkPieceMovement(pieceToMove, finalPosition)) {
+            return false;
+        }
+
+        // Find the king of the moving piece's color
+        King kingToCheck = pieceToMove.color ? King.findWhiteKing() : King.findBlackKing();
+
+        if(kingToCheck == null) {
+            return false;
+        }
+
+        // Check if king is currently in check
+        boolean kingChecked = kingToCheck.isChecked();
+
+        if(kingChecked) {
+            // King is in check - move must remove the check
+            return SimulationClass.kingSim(pieceToMove, finalPosition, kingToCheck);
+        } else {
+            // King is not in check - move must not put king in check
+            if(pieceToMove instanceof King) {
+                // If moving the king, make sure destination is safe
+                return SimulationClass.willMoveCheckKing(pieceToMove, finalPosition);
+            } else {
+                // If moving another piece, make sure it doesn't expose the king
+                return SimulationClass.willMoveCheckKing(pieceToMove, finalPosition);
+            }
         }
     }
 
@@ -168,6 +201,70 @@ public abstract class Piece {
             initalizeCastleMap();
         }
         return castlingMap;
+    }
+
+    /**
+     * Helper method to check if a square is under attack by the opposite color
+     * @param square The square to check
+     * @param friendlyColor The color of the piece we're protecting (true = white, false = black)
+     * @return true if square is under attack / false if safe
+     */
+    private static boolean isSquareUnderAttack(Pos square, boolean friendlyColor) {
+        // Check all enemy pieces to see if they can attack this square
+        for(Piece enemyPiece : GameManager.getGameObjects()) {
+            if(enemyPiece.color != friendlyColor && enemyPiece.isActive) {
+                // Check if this enemy piece can move to the square
+                // We use basic movement rules (no check validation to avoid recursion)
+                String movementType = Pos.checkMovementDirection(enemyPiece.position, square);
+
+                if(movementType == null) {
+                    continue;
+                }
+
+                // Check based on piece type
+                if(enemyPiece instanceof Pawn) {
+                    // Pawns attack diagonally
+                    if(movementType.equals("diagonal") &&
+                            Pos.squaresMoved(movementType, enemyPiece.position, square) == 1) {
+                        if(enemyPiece.color) { // white pawn
+                            if(square.num - enemyPiece.position.num > 0) {
+                                return true;
+                            }
+                        } else { // black pawn
+                            if(enemyPiece.position.num - square.num > 0) {
+                                return true;
+                            }
+                        }
+                    }
+                } else if(enemyPiece instanceof Knight) {
+                    if(movementType.equals("knight")) {
+                        return true;
+                    }
+                } else if(enemyPiece instanceof Bishop) {
+                    if(movementType.equals("diagonal") &&
+                            !enemyPiece.anyPieceBlocking(square, movementType)) {
+                        return true;
+                    }
+                } else if(enemyPiece instanceof Rook) {
+                    if((movementType.equals("vertical") || movementType.equals("horizontal")) &&
+                            !enemyPiece.anyPieceBlocking(square, movementType)) {
+                        return true;
+                    }
+                } else if(enemyPiece instanceof Queen) {
+                    if((movementType.equals("vertical") || movementType.equals("horizontal") ||
+                            movementType.equals("diagonal")) &&
+                            !enemyPiece.anyPieceBlocking(square, movementType)) {
+                        return true;
+                    }
+                } else if(enemyPiece instanceof King) {
+                    // King attacks one square in any direction
+                    if(Pos.squaresMoved(movementType, enemyPiece.position, square) == 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -269,10 +366,11 @@ public abstract class Piece {
     }
 
     /**
-     * Checks if the movement for a piece is legal
+     * Checks if the movement for a piece is legal (BASIC RULES ONLY - no check validation)
+     * This is the foundation that other validation builds on
      * @param PieceToMove Piece to move
      * @param finalPosition position the piece will go to
-     * @return true if move is legal / false if move is illegal
+     * @return true if move follows piece movement rules / false if illegal
      */
     public static boolean checkPieceMovement(Piece PieceToMove, Pos finalPosition) {
         try{
@@ -382,19 +480,36 @@ public abstract class Piece {
                     if(castlingMap == null){
                         initalizeCastleMap();
                     }
+
+                    King king = (King) PieceToMove;
+
+                    // CRITICAL: Cannot castle if king is in check
+                    if(king.isChecked()) {
+                        return false;
+                    }
+
                     Rook r = (Rook) findPieceOfPos(Pos.stringToPos(castlingMap.get(strFinalPos)));
-                    if(PieceManagers.canCastle(r, (King) PieceToMove)){
+                    if(PieceManagers.canCastle(r, king)){
+                        // Check if path is clear AND king doesn't pass through check
                         if(strFinalPos.equals("g1") &&
-                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("g1"), movementType)){
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("g1"), movementType) &&
+                                !isSquareUnderAttack(new Pos(0, 5), king.color) && // f1
+                                !isSquareUnderAttack(new Pos(0, 6), king.color)) {  // g1
                             return true;
                         } else if(strFinalPos.equals("c1") &&
-                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("b1"), movementType)){
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("b1"), movementType) &&
+                                !isSquareUnderAttack(new Pos(0, 3), king.color) && // d1
+                                !isSquareUnderAttack(new Pos(0, 2), king.color)) {  // c1
                             return true;
                         } else if(strFinalPos.equals("g8") &&
-                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("g8"), movementType)){
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("g8"), movementType) &&
+                                !isSquareUnderAttack(new Pos(7, 5), king.color) && // f8
+                                !isSquareUnderAttack(new Pos(7, 6), king.color)) {  // g8
                             return true;
                         } else if(strFinalPos.equals("c8") &&
-                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("b8"), movementType)){
+                                !PieceToMove.anyPieceBlocking(Pos.stringToPos("b8"), movementType) &&
+                                !isSquareUnderAttack(new Pos(7, 3), king.color) && // d8
+                                !isSquareUnderAttack(new Pos(7, 2), king.color)) {  // c8
                             return true;
                         }
                     }

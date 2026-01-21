@@ -8,14 +8,14 @@ import java.util.Scanner;
 
 /**
  * This class is only used to simulate a move. The main usage of this class is to check if the
- * next move the player will make will remove the check or will keep it. Only method that can
- * be called is kingSim().
+ * next move the player will make will remove the check or will keep it.
+ *
+ * Some aspects of this class where simplified with the use of AI
  */
 public class SimulationClass {
-    private static char[][] BoardCopy;
-    private static ArrayList<Piece> GOCopy;
-    private static King KingToMove;
-    private static Pos originalKingPos; // Track original position
+    private char[][] BoardCopy;
+    private ArrayList<Piece> GOCopy;
+    private King KingToMove;
 
     /**
      * Basic constructor taking current board and objects in the game
@@ -24,123 +24,74 @@ public class SimulationClass {
         BoardCopy = deepCopyBoard(PieceManagers.getBoard());
         GOCopy = deepCopyPieces();
         KingToMove = findKing(k);
-        originalKingPos = new Pos(k.position.num, k.position.letter); // Store original position
     }
 
     /**
-     * Simulates if the move that has been done will remove the kings check.
+     * SIMPLIFIED: Simulates if the move that has been done will remove the kings check.
      * @return true if removes check / false if king is still in check
      */
     public static boolean kingSim(Piece pieceToMove, Pos finalPos, King k) {
         SimulationClass sc = new SimulationClass(k);
 
-        //recreate the char[] for movement
-        char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
-
         // Find the piece in the simulation that corresponds to pieceToMove
         Piece simPiece = sc.findPieceOfPosSim(pieceToMove.position);
 
-        //Check if move is valid
-        if(simPiece != null && sc.checkPieceMovementSim(simPiece, finalPos)){
-            // Check if this is a castling move
-            if(simPiece instanceof King && ((King) simPiece).getCanCastle() && simPiece.color
-                && (finalPos.posToString().equals("g1")) || finalPos.posToString().equals("c1") && canCastleSafely(k, finalPos)) {
-                sc.UpdateSim(movementCharSim);
-            } else if (simPiece instanceof King && ((King) simPiece).getCanCastle() && !simPiece.color
-                    && (finalPos.posToString().equals("g8")) || finalPos.posToString().equals("c8") && canCastleSafely(k, finalPos)) {
-                sc.UpdateSim(movementCharSim);
-            } else {
-                sc.UpdateSim(movementCharSim);
-            }
+        if(simPiece == null) {
+            return false;
         }
 
-        //Final check to see if the move can be done while removing the check
+        // Simulate the move
+        char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
+        sc.UpdateSim(movementCharSim);
+
+        // Check if king is still in check after this move
         return !sc.isKingCheckedSim(sc.KingToMove);
     }
 
     /**
      * Will create a simulation that checks if the move entered will check the king.
-     * @param pieceToMove The king that will move
-     * @param finalPos the final position the king will go to
-     * @return true if it will check / false if it won't check
+     * @param pieceToMove The piece that will move (often a king)
+     * @param finalPos the final position the piece will go to
+     * @return true if move is safe (won't check king) / false if move will check king
      */
     public static boolean willMoveCheckKing(Piece pieceToMove, Pos finalPos){
-        SimulationClass sc = new SimulationClass((King) pieceToMove);
-        //recreate the char[] for movement
-        char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
+        King kingToCheck;
+        if(pieceToMove instanceof King) {
+            kingToCheck = (King) pieceToMove;
+        } else {
+            // Find the king of the same color as the moving piece
+            kingToCheck = pieceToMove.color ? King.findWhiteKing() : King.findBlackKing();
+        }
+
+        if(kingToCheck == null) {
+            return false;
+        }
+
+        SimulationClass sc = new SimulationClass(kingToCheck);
 
         // Find the piece in the simulation
         Piece simPiece = sc.findPieceOfPosSim(pieceToMove.position);
 
-        //Check if move is valid
-        if(simPiece != null && sc.checkPieceMovementSim(simPiece, finalPos)){
-            sc.UpdateSim(movementCharSim);
+        if(simPiece == null) {
+            return false;
         }
 
-        //Checks if the move made will check the king.
+        // Simulate the move
+        char[] movementCharSim = (pieceToMove.position.posToString() + "-" + finalPos.posToString()).toCharArray();
+        sc.UpdateSim(movementCharSim);
+
+        // Check if the move leaves/puts king in check
         return !sc.isKingCheckedSim(sc.KingToMove);
     }
 
     /**
-     * Checks if castling will result in the king being in check
-     * @param king The king attempting to castle
-     * @param targetPos The target position for castling (g1, c1, g8, or c8)
-     * @return true if the castle is safe (king not in check) / false if king would be in check
+     * FIXED: Checks if the king is in checkmate
+     * @param k The king to check
+     * @return true if checkmate / false if not checkmate
      */
-    public static boolean canCastleSafely(King king, Pos targetPos) {
-        // Create a simulation
-        SimulationClass sim = new SimulationClass(king);
-
-        // Get the simulated king
-        Piece simKing = sim.findPieceOfPosSim(king.position);
-
-        if(!(simKing instanceof King)) {
-            return false;
-        }
-
-        String targetStr = targetPos.posToString();
-        Rook simRook = null;
-        Pos rookTargetPos = null;
-
-        // Determine which rook to castle with and where it goes
-        if(targetStr.equals("g1")) {
-            // Kingside castle white
-            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("h1"));
-            rookTargetPos = Pos.stringToPos("f1");
-        } else if(targetStr.equals("c1")) {
-            // Queenside castle white
-            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("a1"));
-            rookTargetPos = Pos.stringToPos("d1");
-        } else if(targetStr.equals("g8")) {
-            // Kingside castle black
-            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("h8"));
-            rookTargetPos = Pos.stringToPos("f8");
-        } else if(targetStr.equals("c8")) {
-            // Queenside castle black
-            simRook = (Rook) sim.findPieceOfPosSim(Pos.stringToPos("a8"));
-            rookTargetPos = Pos.stringToPos("d8");
-        }
-
-        if(simRook == null || rookTargetPos == null) {
-            return false;
-        }
-
-        // Move the king
-        sim.movementSim(targetPos, (King) simKing);
-
-        // Move the rook
-        sim.movementSim(rookTargetPos, simRook);
-
-        // Check if king is in check after castling
-        return !sim.isKingCheckedSim((King) simKing);
-    }
-
-    protected static boolean isCheckMate(King k) {
-        // Create a fresh simulation to check the initial state
-        SimulationClass checkSim = new SimulationClass(k);
-
+    public static boolean isCheckMate(King k) {
         // First, verify the king is actually in check
-        if(!checkSim.isKingCheckedSim(checkSim.KingToMove)) {
+        if(!k.isChecked()) {
             return false; // Can't be checkmate if not in check
         }
 
@@ -152,17 +103,11 @@ public class SimulationClass {
                     for(int letter = 0; letter < 8; letter++) {
                         Pos targetPos = new Pos(num, letter);
 
-                        // Create a fresh simulation for each move test
-                        SimulationClass testSim = new SimulationClass(k);
-                        Piece simPiece = testSim.findPieceOfPosSim(p.position);
-
-                        if(simPiece != null && testSim.checkPieceMovementSim(simPiece, targetPos)) {
-                            // Simulate the move
-                            char[] moveChar = (p.position.posToString() + "-" + targetPos.posToString()).toCharArray();
-                            testSim.UpdateSim(moveChar);
-
-                            // Check if king is still in check after this move
-                            if(!testSim.isKingCheckedSim(testSim.KingToMove)) {
+                        // Use the SAME validation as normal gameplay
+                        // First check if move follows basic piece rules
+                        if(Piece.checkPieceMovement(p, targetPos)) {
+                            // Then check if it removes the check
+                            if(kingSim(p, targetPos, k)) {
                                 return false; // Found a move that escapes check
                             }
                         }
@@ -179,7 +124,7 @@ public class SimulationClass {
      * @param K the king to find
      * @return king in the simulation
      */
-    private static King findKing(King K) {
+    private King findKing(King K) {
         for (Piece p : GOCopy) {
             if(p.position.letter == K.position.letter && p.position.num == K.position.num && p instanceof King){
                 return (King) p;
@@ -257,10 +202,6 @@ public class SimulationClass {
      * @return true = checked / false = not checked
      */
     private boolean isKingCheckedSim(King k){
-        if(BoardCopy == null && GOCopy == null){
-            SimulationClass sc = new SimulationClass(k);
-        }
-
         //Get King position
         String kingPosStr = k.position.posToString();
 
@@ -273,6 +214,7 @@ public class SimulationClass {
                     Pos kingPos = Pos.stringToPos(kingPosStr);
 
                     //Check if this enemy piece can attack the king
+                    //Use basic movement check (no recursion into check validation)
                     if(checkPieceMovementSim(attackingPiece, kingPos)){
                         return true;
                     }
@@ -280,6 +222,20 @@ public class SimulationClass {
             }
         }
         return false;
+    }
+
+    /**
+     * Finds a piece in our GOCopy and returns it
+     * @param position position of the piece to find
+     * @return the piece at that position
+     */
+    private Piece findPieceOfPosSim(Pos position){
+        for(Piece p : GOCopy){
+            if(position.num == p.position.num && position.letter == p.position.letter){
+                return p;
+            }
+        }
+        return null;
     }
 
     /**
@@ -308,21 +264,8 @@ public class SimulationClass {
     }
 
     /**
-     * Finds a piece in our GOCopy and returns it
-     * @param position position of the piece to find
-     * @return the piece at that position
-     */
-    private Piece findPieceOfPosSim(Pos position){
-        for(Piece p : GOCopy){
-            if(position.num == p.position.num && position.letter == p.position.letter){
-                return p;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Checks if, in the simulation, the movement for a piece is legal
+     * SIMPLIFIED: Checks if the movement for a piece is legal in simulation
+     * This mirrors Piece.checkPieceMovement but uses simulation data
      * @param PieceToMove Piece to move
      * @param finalPosition position the piece will go to
      * @return true if move is legal / false if move is illegal
@@ -389,31 +332,6 @@ public class SimulationClass {
                 }
             } else if ((movementType.equals("vertical") || movementType.equals("horizontal") ||
                     movementType.equals("diagonal")) && PieceToMove instanceof King) {
-                //We first check if the king wants to castle with a rook
-                String strFinalPos = finalPosition.posToString();
-                if(movementType.equals("horizontal") && (strFinalPos.equals("g1") || strFinalPos.equals("c1") ||
-                        strFinalPos.equals("g8") || strFinalPos.equals("c8"))){
-                    if(Piece.getCastlingMap() == null){
-                        Piece.initalizeCastleMap();
-                    }
-                    Rook r = (Rook) findPieceOfPosSim(Pos.stringToPos(Piece.getCastlingMap().get(strFinalPos)));
-                    if(r != null && PieceManagers.canCastle(r, (King) PieceToMove)){
-                        if(strFinalPos.equals("g1") &&
-                                !anyPieceBlockingSim(PieceToMove, Pos.stringToPos("g1"), movementType)){
-                            return true;
-                        } else if(strFinalPos.equals("c1") &&
-                                !anyPieceBlockingSim(PieceToMove, Pos.stringToPos("b1"), movementType)){
-                            return true;
-                        } else if(strFinalPos.equals("g8") &&
-                                !anyPieceBlockingSim(PieceToMove, Pos.stringToPos("g8"), movementType)){
-                            return true;
-                        } else if(strFinalPos.equals("c8") &&
-                                !anyPieceBlockingSim(PieceToMove, Pos.stringToPos("b8"), movementType)){
-                            return true;
-                        }
-                    }
-                }
-
                 if(!checkPosToMoveSim(PieceToMove, finalPosition, false) &&
                         !anyPieceBlockingSim(PieceToMove,finalPosition, movementType) &&
                         Pos.squaresMoved(movementType, PieceToMove.position, finalPosition) == 1){
